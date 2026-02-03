@@ -1,31 +1,60 @@
+import os
 import json
-import re
+import time
+import boto3
+from botocore.exceptions import BotoCoreError, ClientError
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-class LLMClient:
-    def invoke(self, prompt_text: str) -> str:
-        raise NotImplementedError
+class BedrockClient:
+    def __init__(self):
+        self.region = os.getenv("AWS_REGION", "ap-northeast-2")
+        self.model_id = os.getenv("BEDROCK_MODEL_ID")
+        self.max_tokens = int(os.getenv("BEDROCK_MAX_TOKENS", "1024"))
+        self.temperature = float(os.getenv("BEDROCK_TEMPERATURE", "0.2"))
 
+        if not self.model_id:
+            raise ValueError("BEDROCK_MODEL_ID is not set")
 
-class MockLLMClient(LLMClient):
-    def invoke(self, prompt_text: str) -> str:
-        # Very small heuristic for local tests without a real LLM.
-        text_match = re.search(r"다음 텍스트를 분석해라:\s*(.*)", prompt_text, re.DOTALL)
-        input_text = text_match.group(1).strip() if text_match else ""
-        result = {
-            "emotion_tone": [],
-            "narrative_focus": [],
-            "pacing": "medium",
-            "ending_preference": "open",
+        self.client = boto3.client(
+            service_name="bedrock-runtime",
+            region_name=self.region
+        )
+
+    def invoke(self, system_prompt: str, user_prompt: str, retry: int = 2) -> str:
+        """
+        Bedrock LLM 호출 (Claude 계열 기준)
+        반환값: raw text (string)
+        """
+
+        body = {
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature,
+            "system": system_prompt,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": user_prompt
+                }
+            ]
         }
 
-        if "잔잔" in input_text or "여운" in input_text:
-            result["emotion_tone"] = ["calm", "melancholic"]
-            result["pacing"] = "slow"
-        if "긴장" in input_text or "스릴" in input_text:
-            result["emotion_tone"] = ["tense"]
-            result["pacing"] = "fast"
-        if "결말" in input_text or "시원" in input_text:
-            result["ending_preference"] = "clear"
+        for attempt in range(retry + 1):
+            try:
+                response = self.client.invoke_model(
+                    modelId=self.model_id,
+                    body=json.dumps(body),
+                    accept="application/json",
+                    contentType="application/json",
+                )
 
-        return json.dumps(result, ensure_ascii=False)
+                response_body = json.loads(response["body"].read())
+                return response_body["content"][0]["text"]
+
+            except (BotoCoreError, ClientError, KeyError) as e:
+                if attempt >= retry:
+                    raise RuntimeError(f"Bedrock invoke failed: {e}")
+                time.sleep(1.5 * (attempt + 1))
