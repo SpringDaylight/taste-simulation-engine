@@ -48,7 +48,7 @@ def expand_query(text: str, emotion_tags: List[str]) -> Dict[str, float]:
 
     # fallback: if nothing matched, use deterministic dummy scores
     if max(scores.values()) == 0.0:
-        scores = moviea1.score_tags(text, emotion_tags)
+        scores = moviea2.score_tags(text, emotion_tags)
 
     return scores
 
@@ -93,7 +93,7 @@ def main():
     parser.add_argument('--year-to', type=int, default=None)
     args = parser.parse_args()
 
-    taxonomy = moviea1.load_taxonomy(args.taxonomy)
+    taxonomy = moviea2.load_taxonomy(args.taxonomy)
     emotion_tags = taxonomy['emotion']['tags']
 
     intent = classify_intent(args.text)

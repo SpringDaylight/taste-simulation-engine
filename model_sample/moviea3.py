@@ -62,17 +62,17 @@ def main():
     parser.add_argument('--limit', type=int, default=10)
     args = parser.parse_args()
 
-    taxonomy = moviea1.load_taxonomy(args.taxonomy)
-    movies = moviea1.load_json(args.movies)
+    taxonomy = moviea2.load_taxonomy(args.taxonomy)
+    movies = moviea2.load_json(args.movies)
 
     # Build user profile from text
     user_profile = {
-        'emotion_scores': moviea1.score_tags(args.user_text, taxonomy['emotion']['tags']),
-        'narrative_traits': moviea1.score_tags(args.user_text, taxonomy['story_flow']['tags']),
+        'emotion_scores': moviea2.score_tags(args.user_text, taxonomy['emotion']['tags']),
+        'narrative_traits': moviea2.score_tags(args.user_text, taxonomy['story_flow']['tags']),
         'ending_preference': {
-            'happy': moviea1.stable_score(args.user_text, 'ending_happy'),
-            'open': moviea1.stable_score(args.user_text, 'ending_open'),
-            'bittersweet': moviea1.stable_score(args.user_text, 'ending_bittersweet'),
+            'happy': moviea2.stable_score(args.user_text, 'ending_happy'),
+            'open': moviea2.stable_score(args.user_text, 'ending_open'),
+            'bittersweet': moviea2.stable_score(args.user_text, 'ending_bittersweet'),
         },
     }
 
@@ -80,7 +80,7 @@ def main():
 
     scored = []
     for m in movies:
-        mp = moviea1.build_profile(m, taxonomy)
+        mp = moviea2.build_profile(m, taxonomy)
         raw, match = compute_score(user_profile, mp, dislikes)
         scored.append({
             'movie_id': m.get('id'),
