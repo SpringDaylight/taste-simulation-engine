@@ -1,9 +1,11 @@
-﻿import argparse
+﻿# A-5 자연어 기반 감성 검색(LLM + RAG)
+
+import argparse
 import json
 import re
 from typing import Dict, List
 
-import moviea1
+import moviea2
 
 
 KEYWORD_MAP = {

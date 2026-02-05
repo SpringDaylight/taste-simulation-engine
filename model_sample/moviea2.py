@@ -1,4 +1,6 @@
-﻿import argparse
+﻿## A-2 영화 특성 추출 및 벡터화
+
+import argparse
 import hashlib
 import json
 import os
@@ -116,3 +118,18 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+def analyze_with_llm(text: str, taxonomy: Dict) -> Dict:
+    # 1. 프롬프트 생성 (Taxonomy 리스트 포함)
+    # 2. LLM API 호출 (OpenAI JSON Mode 등)
+    # 3. 결과 파싱 및 반환
+    pass  # ← 비어있음!
+
+
+def embedding_text():  # ← 비어있음!
+    pass
+
+def embedding_vector():  # ← 비어있음!
+    pass

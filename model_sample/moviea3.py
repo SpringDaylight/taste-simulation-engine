@@ -1,9 +1,11 @@
-﻿import argparse
+﻿## A-3 취향 시뮬레이터
+
+import argparse
 import json
 import math
 from typing import Dict, List
 
-import moviea1
+import moviea2
 
 
 def cosine_sim(a: List[float], b: List[float]) -> float:
