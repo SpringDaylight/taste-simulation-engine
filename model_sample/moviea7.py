@@ -13,6 +13,8 @@ except Exception:
     np = None
 
 
+
+# 영화 프로필을 하나의 벡터(숫자 리스트)로 변환
 def to_vector(profile: Dict, e_keys: List[str], n_keys: List[str], d_keys: List[str]) -> List[float]:
     return (
         [profile['emotion_scores'].get(k, 0.0) for k in e_keys]
@@ -21,13 +23,16 @@ def to_vector(profile: Dict, e_keys: List[str], n_keys: List[str], d_keys: List[
     )
 
 
+
+# 고차원 벡터를 2D 좌표로 축소 (차원 축소)
 def project_2d(X: List[List[float]]):
     if np is None:
         raise RuntimeError('numpy is required for projection')
 
     Xn = np.array(X, dtype=float)
-
-    # Try UMAP, then PCA, then random projection
+    # UMAP (최우선) - 비선형 차원 축소, 가장 정확
+    # PCA (대안) - 선형 차원 축소
+    # Random Projection (최후) - 랜덤 투영
     try:
         import umap
         reducer = umap.UMAP(n_components=2, random_state=42)
@@ -55,6 +60,8 @@ def project_2d(X: List[List[float]]):
     return coords, DummyReducer()
 
 
+
+# K-Means 클러스터링
 def kmeans(X: List[List[float]], k: int = 8, iters: int = 30):
     if np is None:
         raise RuntimeError('numpy is required for clustering')
@@ -77,6 +84,9 @@ def kmeans(X: List[List[float]], k: int = 8, iters: int = 30):
     return labels.tolist(), centroids.tolist()
 
 
+
+# 클러스터에 이름 붙이기
+# 클러스터 중심점에서 가장 높은 점수를 가진 감정 태그 2개 추출
 def label_cluster(centroid_vec: List[float], e_keys: List[str]):
     # Use top emotion tags as cluster label (dummy LLM)
     e_len = len(e_keys)
@@ -87,6 +97,13 @@ def label_cluster(centroid_vec: List[float], e_keys: List[str]):
     return f"{top[0]}·{top[1]} 분위기"
 
 
+
+# 1. 영화 데이터 로드 및 벡터화
+# 2. 2D 좌표로 투영
+# 3. K-Means 클러스터링 (k=8개 그룹)
+# 4. 각 클러스터에 라벨 부여
+# 5. 사용자 취향 벡터도 생성하여 같은 2D 공간에 배치
+# 6. 사용자와 가장 가까운 클러스터 찾기
 def main():
     parser = argparse.ArgumentParser(description='A-7 Dynamic Clustering Map (UMAP/PCA fallback)')
     parser.add_argument('--movies', default='movies_dataset_final.json')

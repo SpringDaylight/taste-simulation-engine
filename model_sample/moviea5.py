@@ -8,6 +8,7 @@ from typing import Dict, List
 import moviea2
 
 
+# 자연어 -> 정서 태그 매핑 사전
 KEYWORD_MAP = {
     '우울': '우울해요',
     '슬프': '슬퍼요',
@@ -28,12 +29,14 @@ KEYWORD_MAP = {
 }
 
 
+# 사용자 의도 분류
 def classify_intent(text: str) -> str:
     if re.search(r'추천|취향|좋아|싫어|선호', text):
         return 'preference_analysis'
     return 'search'
 
 
+# 사용자 입력 텍스트를 감성 태그로 확장
 def expand_query(text: str, emotion_tags: List[str]) -> Dict[str, float]:
     scores = {tag: 0.0 for tag in emotion_tags}
     for k, tag in KEYWORD_MAP.items():
@@ -53,6 +56,7 @@ def expand_query(text: str, emotion_tags: List[str]) -> Dict[str, float]:
     return scores
 
 
+# 하이브리드 검색 쿼리 생성
 def build_hybrid_query(emotion_scores: Dict[str, float], filters: Dict, k=50, num_candidates=200):
     emotion_vector = [emotion_scores[k] for k in emotion_scores.keys()]
 
@@ -84,6 +88,14 @@ def build_hybrid_query(emotion_scores: Dict[str, float], filters: Dict, k=50, nu
     }
 
 
+
+# 사용자 입력 텍스트를 감성 태그로 확장
+# 1. 사용자 텍스트 입력
+# 2. Intent 분류 (search or preference_analysis)
+# 3. 쿼리 확장 (자연어 → 정서 점수)
+# 4. 필터 설정 (장르, 연도 등)
+# 5. 하이브리드 쿼리 생성
+# 6. JSON 출력
 def main():
     parser = argparse.ArgumentParser(description='A-5 Intent + Query Expansion + Hybrid Search (dummy)')
     parser.add_argument('--taxonomy', default='emotion_tag.json')

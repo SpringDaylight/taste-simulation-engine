@@ -7,6 +7,7 @@ import os
 from typing import Dict, List
 
 
+# JSON 파일 로드
 def load_json(path: str):
     with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)
@@ -29,10 +30,15 @@ def analyze_with_llm(text: str, taxonomy: Dict) -> Dict:
     pass
 
 
+# 여러 정서 태그에 대해 더미 값 입력
 def score_tags(text: str, tags: List[str]) -> Dict[str, float]:
     return {tag: stable_score(text, tag) for tag in tags}
 
-# 텍스트 추출
+
+# 영화 데이터에서 분석용 텍스트 추출
+#  단순 텍스트: title, overview
+# 리스트: keywords, genres, directors, cast
+# 특수 처리: runtime (숫자 → 범주형)
 def movie_text(movie: Dict) -> str:
     parts = []
     for key in ['title', 'overview']:
@@ -58,6 +64,7 @@ def movie_text(movie: Dict) -> str:
             pass  # 변환 실패 시 무시
     
     return ' '.join(parts)
+
 
 # 영화 데이터셋 설정(정서 태그 추가)
 def build_profile(movie: Dict, taxonomy: Dict) -> Dict:
@@ -118,18 +125,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-def analyze_with_llm(text: str, taxonomy: Dict) -> Dict:
-    # 1. 프롬프트 생성 (Taxonomy 리스트 포함)
-    # 2. LLM API 호출 (OpenAI JSON Mode 등)
-    # 3. 결과 파싱 및 반환
-    pass  # ← 비어있음!
-
-
-def embedding_text():  # ← 비어있음!
-    pass
-
-def embedding_vector():  # ← 비어있음!
-    pass
