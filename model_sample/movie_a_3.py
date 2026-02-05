@@ -5,7 +5,7 @@ import json
 import math
 from typing import Dict, List
 
-import moviea2
+import movie_a_2
 
 
 # 코사인 유사도 계산
@@ -75,17 +75,17 @@ def main():
     parser.add_argument('--limit', type=int, default=10)
     args = parser.parse_args()
 
-    taxonomy = moviea2.load_taxonomy(args.taxonomy)
-    movies = moviea2.load_json(args.movies)
+    taxonomy = movie_a_2.load_taxonomy(args.taxonomy)
+    movies = movie_a_2.load_json(args.movies)
 
     # Build user profile from text
     user_profile = {
-        'emotion_scores': moviea2.score_tags(args.user_text, taxonomy['emotion']['tags']),
-        'narrative_traits': moviea2.score_tags(args.user_text, taxonomy['story_flow']['tags']),
+        'emotion_scores': movie_a_2.score_tags(args.user_text, taxonomy['emotion']['tags']),
+        'narrative_traits': movie_a_2.score_tags(args.user_text, taxonomy['story_flow']['tags']),
         'ending_preference': {
-            'happy': moviea2.stable_score(args.user_text, 'ending_happy'),
-            'open': moviea2.stable_score(args.user_text, 'ending_open'),
-            'bittersweet': moviea2.stable_score(args.user_text, 'ending_bittersweet'),
+            'happy': movie_a_2.stable_score(args.user_text, 'ending_happy'),
+            'open': movie_a_2.stable_score(args.user_text, 'ending_open'),
+            'bittersweet': movie_a_2.stable_score(args.user_text, 'ending_bittersweet'),
         },
     }
 
@@ -93,7 +93,7 @@ def main():
 
     scored = []
     for m in movies:
-        mp = moviea2.build_profile(m, taxonomy)
+        mp = movie_a_2.build_profile(m, taxonomy)
         raw, match = compute_score(user_profile, mp, dislikes)
         scored.append({
             'movie_id': m.get('id'),

@@ -5,7 +5,7 @@ import json
 import re
 from typing import Dict, List
 
-import moviea2
+import movie_a_2
 
 
 # 자연어 -> 정서 태그 매핑 사전
@@ -51,7 +51,7 @@ def expand_query(text: str, emotion_tags: List[str]) -> Dict[str, float]:
 
     # fallback: if nothing matched, use deterministic dummy scores
     if max(scores.values()) == 0.0:
-        scores = moviea2.score_tags(text, emotion_tags)
+        scores = movie_a_2.score_tags(text, emotion_tags)
 
     return scores
 
@@ -105,7 +105,7 @@ def main():
     parser.add_argument('--year-to', type=int, default=None)
     args = parser.parse_args()
 
-    taxonomy = moviea2.load_taxonomy(args.taxonomy)
+    taxonomy = movie_a_2.load_taxonomy(args.taxonomy)
     emotion_tags = taxonomy['emotion']['tags']
 
     intent = classify_intent(args.text)

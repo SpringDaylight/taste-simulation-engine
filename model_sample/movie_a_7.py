@@ -5,7 +5,7 @@ import json
 import math
 from typing import List, Dict, Tuple
 
-import moviea2
+import movie_a_2
 
 try:
     import numpy as np
@@ -152,14 +152,14 @@ def main():
     parser.add_argument('--label-topn', type=int, default=10)
     args = parser.parse_args()
 
-    taxonomy = moviea2.load_taxonomy(args.taxonomy)
-    movies = moviea2.load_json(args.movies)[: args.limit]
+    taxonomy = movie_a_2.load_taxonomy(args.taxonomy)
+    movies = movie_a_2.load_json(args.movies)[: args.limit]
 
     e_keys = taxonomy['emotion']['tags']
     n_keys = taxonomy['story_flow']['tags']
     d_keys = ['happy', 'open', 'bittersweet']
 
-    profiles = [moviea2.build_profile(m, taxonomy) for m in movies]
+    profiles = [movie_a_2.build_profile(m, taxonomy) for m in movies]
     X = [to_vector(p, e_keys, n_keys, d_keys) for p in profiles]
 
     coords, reducer = project_2d(X)
@@ -178,12 +178,12 @@ def main():
     )
 
     user_profile = {
-        'emotion_scores': moviea2.score_tags(args.user_text, e_keys),
-        'narrative_traits': moviea2.score_tags(args.user_text, n_keys),
+        'emotion_scores': movie_a_2.score_tags(args.user_text, e_keys),
+        'narrative_traits': movie_a_2.score_tags(args.user_text, n_keys),
         'ending_preference': {
-            'happy': moviea2.stable_score(args.user_text, 'ending_happy'),
-            'open': moviea2.stable_score(args.user_text, 'ending_open'),
-            'bittersweet': moviea2.stable_score(args.user_text, 'ending_bittersweet'),
+            'happy': movie_a_2.stable_score(args.user_text, 'ending_happy'),
+            'open': movie_a_2.stable_score(args.user_text, 'ending_open'),
+            'bittersweet': movie_a_2.stable_score(args.user_text, 'ending_bittersweet'),
         },
     }
     user_vec = to_vector(user_profile, e_keys, n_keys, d_keys)
