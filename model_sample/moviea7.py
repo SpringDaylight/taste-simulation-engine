@@ -12,8 +12,6 @@ try:
 except Exception:
     np = None
 
-
-
 # 영화 프로필을 하나의 벡터(숫자 리스트)로 변환
 def to_vector(profile: Dict, e_keys: List[str], n_keys: List[str], d_keys: List[str]) -> List[float]:
     return (
@@ -22,28 +20,21 @@ def to_vector(profile: Dict, e_keys: List[str], n_keys: List[str], d_keys: List[
         + [profile['ending_preference'].get(k, 0.0) for k in d_keys]
     )
 
-
-
 # 고차원 벡터를 2D 좌표로 축소 (차원 축소)
 def project_2d(X: List[List[float]]):
     if np is None:
         raise RuntimeError('numpy is required for projection')
 
     Xn = np.array(X, dtype=float)
-    # UMAP (최우선) - 비선형 차원 축소, 가장 정확
-    # PCA (대안) - 선형 차원 축소
-    # Random Projection (최후) - 랜덤 투영
-    try:
-        import umap
-        reducer = umap.UMAP(n_components=2, random_state=42)
-        coords = reducer.fit_transform(Xn)
-        return coords, reducer
-    except Exception:
-        pass
+    n_samples = Xn.shape[0]
 
+    # Try UMAP, then PCA, then random projection
     try:
-        from sklearn.decomposition import PCA
-        reducer = PCA(n_components=2, random_state=42)
+        if n_samples < 3:
+            raise ValueError('UMAP needs at least 3 samples')
+        import umap
+        n_neighbors = min(15, n_samples - 1)
+        reducer = umap.UMAP(n_components=2, n_neighbors=n_neighbors, random_state=42)
         coords = reducer.fit_transform(Xn)
         return coords, reducer
     except Exception:
@@ -59,8 +50,6 @@ def project_2d(X: List[List[float]]):
 
     return coords, DummyReducer()
 
-
-
 # K-Means 클러스터링
 def kmeans(X: List[List[float]], k: int = 8, iters: int = 30):
     if np is None:
@@ -68,6 +57,12 @@ def kmeans(X: List[List[float]], k: int = 8, iters: int = 30):
 
     Xn = np.array(X, dtype=float)
     rng = np.random.RandomState(42)
+    
+    if k <= 0:
+        raise ValueError('k must be positive')
+    if k > len(Xn):
+        raise ValueError(f'k ({k}) must be <= number of samples ({len(Xn)})')
+    
     centroids = Xn[rng.choice(len(Xn), k, replace=False)]
 
     for _ in range(iters):
@@ -83,20 +78,63 @@ def kmeans(X: List[List[float]], k: int = 8, iters: int = 30):
 
     return labels.tolist(), centroids.tolist()
 
-
-
 # 클러스터에 이름 붙이기
 # 클러스터 중심점에서 가장 높은 점수를 가진 감정 태그 2개 추출
-def label_cluster(centroid_vec: List[float], e_keys: List[str]):
-    # Use top emotion tags as cluster label (dummy LLM)
-    e_len = len(e_keys)
-    e_scores = centroid_vec[:e_len]
-    pairs = list(zip(e_keys, e_scores))
+def label_from_emotion_mean(mean_scores: Dict[str, float], e_keys: List[str]) -> str:
+    """emotion_scores 평균값(dict)을 받아 상위 2개 태그로 라벨 생성"""
+    pairs = [(k, float(mean_scores.get(k, 0.0))) for k in e_keys]
     pairs.sort(key=lambda x: x[1], reverse=True)
-    top = [p[0] for p in pairs[:2]]
-    return f"{top[0]}·{top[1]} 분위기"
+    top = [pairs[0][0], pairs[1][0]] if len(pairs) >= 2 else [pairs[0][0]]
+    return f"{top[0]}·{top[1]} 분위기" if len(top) >= 2 else f"{top[0]} 분위기"
 
 
+def build_cluster_labels_topn(
+    coords: List[List[float]],
+    labels: List[int],
+    centroids_2d: List[List[float]],
+    profiles: List[Dict],
+    e_keys: List[str],
+    topn: int = 10,
+) -> Dict[int, str]:
+    """
+    클러스터 중심(2D centroid)과 가까운 영화 Top-N만 골라
+    그들의 emotion_scores를 평균내 라벨 생성
+    """
+    if np is None:
+        raise RuntimeError('numpy is required for cluster labeling')
+
+    coords_n = np.array(coords, dtype=float)
+    cent_n = np.array(centroids_2d, dtype=float)
+    labels_n = np.array(labels, dtype=int)
+
+    cluster_labels: Dict[int, str] = {}
+
+    for cid in range(len(centroids_2d)):
+        idxs = np.where(labels_n == cid)[0]
+        if idxs.size == 0:
+            cluster_labels[cid] = f"Cluster {cid}"
+            continue
+
+        # 2D centroid와의 거리로 정렬하여 Top-N 선택
+        d = ((coords_n[idxs] - cent_n[cid]) ** 2).sum(axis=1)
+        order = np.argsort(d)
+        take = idxs[order[: min(topn, idxs.size)]]
+
+        # 선택된 영화들의 emotion_scores 평균
+        mean_scores = {k: 0.0 for k in e_keys}
+        for i in take:
+            es = profiles[int(i)].get('emotion_scores', {})
+            for k in e_keys:
+                mean_scores[k] += float(es.get(k, 0.0))
+
+        denom = float(len(take))
+        if denom > 0:
+            for k in e_keys:
+                mean_scores[k] /= denom
+
+        cluster_labels[cid] = label_from_emotion_mean(mean_scores, e_keys)
+
+    return cluster_labels
 
 # 1. 영화 데이터 로드 및 벡터화
 # 2. 2D 좌표로 투영
@@ -111,6 +149,7 @@ def main():
     parser.add_argument('--user-text', required=True)
     parser.add_argument('--k', type=int, default=8)
     parser.add_argument('--limit', type=int, default=200)
+    parser.add_argument('--label-topn', type=int, default=10)
     args = parser.parse_args()
 
     taxonomy = moviea2.load_taxonomy(args.taxonomy)
@@ -125,10 +164,18 @@ def main():
 
     coords, reducer = project_2d(X)
 
-    labels, centroids = kmeans(X, k=args.k)
-    cluster_labels = {
-        i: label_cluster(centroids[i], e_keys) for i in range(args.k)
-    }
+    # ✅ 2D 공간에서 클러스터링
+    labels, centroids_2d = kmeans(coords, k=args.k)
+
+    # ✅ [변경] Top-N 기반으로 라벨 생성
+    cluster_labels = build_cluster_labels_topn(
+        coords=coords,
+        labels=labels,
+        centroids_2d=centroids_2d,
+        profiles=profiles,
+        e_keys=e_keys,
+        topn=max(1, args.label_topn),
+    )
 
     user_profile = {
         'emotion_scores': moviea2.score_tags(args.user_text, e_keys),
@@ -142,11 +189,11 @@ def main():
     user_vec = to_vector(user_profile, e_keys, n_keys, d_keys)
     user_xy = reducer.transform([user_vec])[0].tolist()
 
-    # Find nearest cluster
+    # Find nearest cluster (2D 기준)
     if np is None:
         raise RuntimeError('numpy is required for nearest cluster calculation')
-    cent = np.array(centroids)
-    uv = np.array(user_vec)
+    cent = np.array(centroids_2d, dtype=float)
+    uv = np.array(user_xy, dtype=float)
     dists = ((cent - uv) ** 2).sum(axis=1)
     nearest = int(dists.argmin())
 
@@ -154,7 +201,7 @@ def main():
         'clusters': [
             {
                 'cluster_id': i,
-                'label': cluster_labels[i],
+                'label': cluster_labels.get(i, f"Cluster {i}"),
                 'count': labels.count(i)
             } for i in range(args.k)
         ],
@@ -162,9 +209,8 @@ def main():
             'x': round(user_xy[0], 4),
             'y': round(user_xy[1], 4),
             'nearest_cluster': nearest,
-            'cluster_label': cluster_labels[nearest]
-        },
-        'note': 'UMAP이 없으면 PCA/랜덤 투영으로 대체합니다.'
+            'cluster_label': cluster_labels.get(nearest, f"Cluster {nearest}")
+        }
     }
 
     print(json.dumps(output, ensure_ascii=False, indent=2))
