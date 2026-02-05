@@ -40,6 +40,21 @@ def movie_text(movie: Dict) -> str:
         val = movie.get(key)
         if isinstance(val, list):
             parts.extend([str(v) for v in val])
+    
+    # runtime을 범주형 텍스트로 변환
+    runtime = movie.get('runtime')
+    if runtime is not None:
+        try:
+            runtime_min = int(runtime)
+            if runtime_min <= 120:
+                parts.append('normal')
+            elif runtime_min <= 180:
+                parts.append('long')
+            else:
+                parts.append('very_long')
+        except (ValueError, TypeError):
+            pass  # 변환 실패 시 무시
+    
     return ' '.join(parts)
 
 # 영화 데이터셋 설정(정서 태그 추가)
@@ -51,6 +66,7 @@ def build_profile(movie: Dict, taxonomy: Dict) -> Dict:
     profile = {
         'movie_id': movie.get('id'),
         'title': movie.get('title'),
+        'runtime': movie.get('runtime'),
         'emotion_scores': score_tags(text, emotion_tags),
         'narrative_traits': score_tags(text, narrative_tags),
         'ending_preference': {
