@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 # .env 파일에서 환경 변수 로드
 load_dotenv()
 
+LLM_MODEL = "anthropic.claude-3-haiku-20240307-v1:0"
+EMBEDDING_MODEL = "amazon.titan-embed-text-v2:0"
 
 def load_json(path: str):
     with open(path, 'r', encoding='utf-8') as f:
@@ -45,21 +47,12 @@ def get_bedrock_client():
 def analyze_with_llm(text: str, taxonomy: Dict, bedrock_client=None) -> Dict:
     """
     AWS Bedrock을 사용하여 영화 텍스트를 분석하고 정서 태그를 추출합니다.
-    
-    Args:
-        text: 분석할 영화 텍스트 (제목, 개요, 키워드 등)
-        taxonomy: emotion_tag.json에서 로드한 태그 분류 체계
-        bedrock_client: AWS Bedrock Runtime 클라이언트
-    
-    Returns:
-        각 카테고리별 태그 점수를 포함한 딕셔너리
     """
     if bedrock_client is None:
         print("Bedrock 클라이언트를 사용할 수 없어 fallback 모드로 실행합니다.")
         return None
     
-    # 1. 프롬프트 생성
-    # 안전한 접근 방식 사용
+    # 1. 프롬프트 생성 (안전한 접근)
     emotion_tags = taxonomy.get('emotion', {}).get('tags', [])
     story_tags = taxonomy.get('story_flow', {}).get('tags', [])
     direction_tags = taxonomy.get('direction_mood', {}).get('tags', [])
@@ -119,12 +112,12 @@ def analyze_with_llm(text: str, taxonomy: Dict, bedrock_client=None) -> Dict:
 
     # 2. AWS Bedrock API 호출
     try:
-        # Claude 3.5 Sonnet 또는 Haiku 사용 권장 (Haiku로 변경)
-        model_id = "anthropic.claude-3-haiku-20240307-v1:0"
+        # 모델 ID는 상수로 관리
+        model_id = LLM_MODEL
         
         request_body = {
             "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": 2000,
+            "max_tokens": 1000, # Cost Efficiency: 2000 -> 1000
             "messages": [
                 {
                     "role": "user",
@@ -145,33 +138,64 @@ def analyze_with_llm(text: str, taxonomy: Dict, bedrock_client=None) -> Dict:
         if 'content' in response_body and len(response_body['content']) > 0:
             content_text = response_body['content'][0]['text']
             
-            # JSON 파싱 강화 (정규식 사용)
-            import re
-            json_match = re.search(r'\{.*\}', content_text, re.DOTALL)
-            
-            if json_match:
-                json_str = json_match.group(0)
-                try:
-                    llm_result = json.loads(json_str)
-                    
-                    # 3. 결과 파싱 및 반환 (점수 직접 사용)
-                    # LLM이 scores를 반환한다고 가정
-                    result = {
-                        'emotion': llm_result.get('emotion', {}).get('scores', {}),
-                        'story_flow': llm_result.get('story_flow', {}).get('scores', {}),
-                        'direction_mood': llm_result.get('direction_mood', {}).get('scores', {}),
-                        'character_relationship': llm_result.get('character_relationship', {}).get('scores', {}),
-                        'ending_preference': llm_result.get('ending_preference', {
-                            'happy': 0.5, 'open': 0.5, 'bittersweet': 0.5
-                        })
-                    }
-                    return result
-                except json.JSONDecodeError:
-                    print(f"JSON 파싱 실패: {content_text[:100]}...")
-                    return None
-            else:
-                print("LLM 응답에서 JSON 패턴을 찾을 수 없습니다.")
+            # C. JSON 파싱 정교화 (Robust Parsing)
+            llm_result = None
+            try:
+                # 1차 시도: 전체 텍스트 파싱
+                llm_result = json.loads(content_text)
+            except json.JSONDecodeError:
+                # 2차 시도: 가장 바깥쪽 중괄호 추출 (Greedy Regex 대신 find/rfind 사용)
+                start_idx = content_text.find('{')
+                end_idx = content_text.rfind('}')
+                if start_idx != -1 and end_idx != -1:
+                    try:
+                        json_str = content_text[start_idx : end_idx + 1]
+                        llm_result = json.loads(json_str)
+                    except json.JSONDecodeError:
+                        print(f"JSON 재파싱 실패: {content_text[:50]}...")
+                else:
+                    print("JSON 구조를 찾을 수 없습니다.")
+
+            if llm_result is None:
                 return None
+
+            # A. 점수 보정 헬퍼 (Data Validation)
+            def _validate_score(val) -> float:
+                try:
+                    s = float(val)
+                    return max(0.0, min(1.0, s)) # Clamp [0.0, 1.0]
+                except (ValueError, TypeError):
+                    return 0.0
+
+            result = {
+                'emotion': {},
+                'story_flow': {},
+                'direction_mood': {},
+                'character_relationship': {},
+                'ending_preference': {}
+            }
+
+            # B. Taxonomy 동기화 (Tag Consistency) & A. 점수 적용
+            categories = {
+                'emotion': emotion_tags,
+                'story_flow': story_tags,
+                'direction_mood': direction_tags,
+                'character_relationship': char_tags
+            }
+
+            for cat, valid_tags in categories.items():
+                scores = llm_result.get(cat, {}).get('scores', {})
+                for tag, score in scores.items():
+                    # 유효한 태그만 필터링
+                    if tag in valid_tags:
+                        result[cat][tag] = _validate_score(score)
+            
+            # Ending preference 처리
+            ending_pref = llm_result.get('ending_preference', {})
+            for key in ['happy', 'open', 'bittersweet']:
+                result['ending_preference'][key] = _validate_score(ending_pref.get(key, 0.5))
+
+            return result
             
         else:
             print("LLM 응답에서 콘텐츠를 찾을 수 없습니다.")
@@ -285,7 +309,7 @@ def embedding_vector(text: str, bedrock_client=None) -> List[float]:
         return []
         
     try:
-        model_id = "amazon.titan-embed-text-v2:0"
+        model_id = EMBEDDING_MODEL
         body = json.dumps({
             "inputText": text,
             "dimensions": 1024,
