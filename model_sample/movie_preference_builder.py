@@ -168,7 +168,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='영화 선택으로 취향 생성')
     parser.add_argument('--liked', help='좋아하는 영화 ID (쉼표 구분)', required=True)
     parser.add_argument('--disliked', help='싫어하는 영화 ID (쉼표 구분)', required=True)
-    parser.add_argument('--movies', default='movies_small.json')
+    parser.add_argument('--movies', default='movies_dataset_final.json')
     parser.add_argument('--taxonomy', default='emotion_tag.json')
     parser.add_argument('--user-id', default='user_001')
     parser.add_argument('--output', default='user_preferences.json')

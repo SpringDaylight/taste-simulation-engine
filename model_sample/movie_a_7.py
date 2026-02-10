@@ -352,7 +352,7 @@ def cross_genre_recommendation(
 
 def main():
     parser = argparse.ArgumentParser(description='A-7 계층적 클러스터링')
-    parser.add_argument('--movies', default='movies_small.json')
+    parser.add_argument('--movies', default='movies_dataset_final.json')
     parser.add_argument('--taxonomy', default='emotion_tag.json')
     parser.add_argument('--user-text', default='저는 감동적이고 따뜻한 영화를 좋아해요')
     parser.add_argument('--limit', type=int, default=100)

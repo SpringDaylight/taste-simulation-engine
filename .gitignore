@@ -1,0 +1,36 @@
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environment Variables (CRITICAL)
+.env
+.env.local
+
+# User Data & Logs
+moviemong_data.json
+moviemong_demo_data.json
+user_preferences.json
+*.log
+*.sqlite
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Test Artifacts
+test_report.md
+test_wc.png
+test_*.py

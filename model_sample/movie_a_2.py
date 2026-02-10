@@ -32,11 +32,22 @@ def stable_score(text: str, tag: str) -> float:
 def get_bedrock_client():
     """AWS Bedrock Runtime 클라이언트를 생성합니다."""
     try:
-        bedrock_runtime = boto3.client(
-            service_name='bedrock-runtime',
+        # ENV 재로드 및 충돌 방지 로직 (AKIA 키 사용 시 세션 토큰 무시)
+        access_key = os.getenv('AWS_ACCESS_KEY_ID', '')
+        if access_key.startswith('AKIA'):
+            if 'AWS_SESSION_TOKEN' in os.environ:
+                del os.environ['AWS_SESSION_TOKEN']
+        
+        # [Safe Init] 명시적 세션 생성으로 전역 세션 오염 방지
+        session = boto3.Session(
             region_name=os.getenv('AWS_REGION', 'ap-northeast-2'),
             aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
             aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+        )
+        
+        bedrock_runtime = session.client(
+            service_name='bedrock-runtime',
+            # region_name 등은 session에서 상속됨
         )
         return bedrock_runtime
     except Exception as e:
@@ -334,7 +345,7 @@ def embedding_vector(text: str, bedrock_client=None) -> List[float]:
 
 def main():
     parser = argparse.ArgumentParser(description='A-1 Emotion Taxonomy Scoring (Stable Score + Titan Embedding)')
-    parser.add_argument('--movies', default='../movies_small.json')
+    parser.add_argument('--movies', default='../movies_dataset_final.json')
     parser.add_argument('--taxonomy', default='emotion_tag.json')
     parser.add_argument('--limit', type=int, default=5)
     parser.add_argument('--movie-id', type=int, default=None)
