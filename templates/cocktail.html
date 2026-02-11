@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍹 감정 칵테일 바</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background-image: url('/static/칵테일 바 배경.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            display: block;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .loading.hide {
+            display: none;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: rgba(255, 107, 107, 0.95);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px;
+            display: none;
+            font-size: 1.2em;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        .error.show {
+            display: block;
+        }
+        
+        .result-screen {
+            display: none;
+            width: 100%;
+            max-width: 900px;
+            padding: 40px 20px;
+            margin: 0 auto;
+        }
+        
+        .result-screen.show {
+            display: block;
+        }
+        
+        .result-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .cocktail-image {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 30px;
+            display: block;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        .cocktail-name {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #764ba2;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .result-section {
+            margin-bottom: 30px;
+        }
+        
+        .result-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .result-content {
+            color: #333;
+            line-height: 1.8;
+            font-size: 1.2em;
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+    <!-- 로딩 화면 -->
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        <div>칵테일을 제조하고 있습니다...</div>
+    </div>
+    
+    <!-- 에러 메시지 -->
+    <div class="error" id="error"></div>
+    
+    <!-- 결과 화면 -->
+    <div class="result-screen" id="result-screen">
+        <div class="result-card">
+            <img id="cocktail-image" class="cocktail-image" src="" alt="칵테일 이미지">
+            
+            <div class="cocktail-name" id="cocktail-name"></div>
+            
+            <div class="result-section">
+                <div class="result-title">📋 성분표</div>
+                <div class="result-content" id="ingredient-label"></div>
+            </div>
+            
+            <div class="result-section">
+                <div class="result-title">💬 바텐더의 한마디</div>
+                <div class="result-content" id="comfort-message"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 페이지 로드 시 자동으로 칵테일 생성
+        window.addEventListener('DOMContentLoaded', function() {
+            generateCocktail();
+        });
+        
+        async function generateCocktail() {
+            try {
+                // 서버에서 칵테일 생성 (cocktail_input_demo.json 사용)
+                const response = await fetch('/generate-cocktail', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})  // 빈 객체 전송, 서버에서 데이터 처리
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 결과 표시
+                    document.getElementById('cocktail-image').src = result.data.image_url;
+                    document.getElementById('cocktail-name').textContent = result.data.cocktail_name;
+                    document.getElementById('ingredient-label').textContent = result.data.ingredient_label;
+                    document.getElementById('comfort-message').textContent = result.data.comfort_message;
+                    
+                    document.getElementById('loading').classList.add('hide');
+                    document.getElementById('result-screen').classList.add('show');
+                } else {
+                    // 에러 표시
+                    document.getElementById('error').textContent = result.error || '칵테일 제조 중 오류가 발생했습니다.';
+                    document.getElementById('error').classList.add('show');
+                    document.getElementById('loading').classList.add('hide');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('error').textContent = '서버와 통신 중 오류가 발생했습니다.';
+                document.getElementById('error').classList.add('show');
+                document.getElementById('loading').classList.add('hide');
+            }
+        }
+    </script>
+</body>
+</html>
