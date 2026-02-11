@@ -24,8 +24,101 @@ init_db(app)
 # User ID (데모용 고정)
 USER_ID = "user_demo"
 # data_file 인자 제거
-with app.app_context():
-    mong = MovieMong(USER_ID)
+mong = MovieMong(USER_ID)
+
+# --- Cocktail Feature Integration ---
+from cocktail.emotion_cocktail_generator import EmotionCocktailGenerator
+from cocktail.image_renderer import CocktailImageRenderer
+import re
+
+# Initialize Cocktail Components
+bedrock_region = os.getenv("BEDROCK_REGION") or os.getenv("AWS_REGION") or "ap-northeast-2"
+bedrock_model_id = os.getenv("BEDROCK_MODEL_ID")
+cocktail_generator = None
+try:
+    cocktail_generator = EmotionCocktailGenerator(
+        bedrock_region=bedrock_region,
+        bedrock_model_id=bedrock_model_id,
+    )
+except Exception as e:
+    print(f"Warning: Cocktail Generator initialization failed: {e}")
+
+# Image Renderer (Output to 'static/output' for web access)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "static", "output")
+image_renderer = CocktailImageRenderer(output_dir=OUTPUT_DIR)
+
+FLAVOR_KEY_MAP = {
+    "sweet": "sweet", "spicy": "spicy", "onion": "onion",
+    "cheese": "cheese", "dark": "dark", "salty": "salty", "mint": "mint",
+}
+
+def _safe_slug(value: str, max_length: int = 20) -> str:
+    candidate = (value or "").strip().replace(" ", "_")
+    candidate = re.sub(r"[^0-9A-Za-z_-]+", "_", candidate)
+    candidate = re.sub(r"_+", "_", candidate).strip("_")
+    return candidate[:max_length] if candidate else "cocktail"
+
+@app.route('/api/cocktail', methods=['POST'])
+def generate_cocktail():
+    if not cocktail_generator:
+        return jsonify({"success": False, "error": "Cocktail generator not initialized"}), 500
+
+    try:
+        # 1. Attempt to use provided input
+        taste_input = {}
+        if request.is_json:
+            req_data = request.get_json()
+            if req_data:
+                taste_input = req_data
+        
+        # 2. If input is empty/incomplete, try to load from MovieMong user data
+        required_keys = ["sweet", "spicy", "onion", "cheese", "dark", "salty", "mint"]
+        if not all(k in taste_input for k in required_keys):
+            user_data = mong.get_user_data()
+            flavor_stats = user_data.get("flavor_stats", {})
+            
+            # Map flavor stats (strings/ints) to cocktail input
+            for k, v in flavor_stats.items():
+                mapped_key = FLAVOR_KEY_MAP.get(str(k).lower())
+                if mapped_key:
+                    try:
+                        taste_input[mapped_key] = int(v)
+                    except:
+                        pass
+            
+            # Fill missing with 0
+            for k in required_keys:
+                if k not in taste_input:
+                    taste_input[k] = 0
+                    
+        # 3. Generate Cocktail
+        cocktail_output = cocktail_generator.generate(taste_input)
+        
+        safe_name = _safe_slug(cocktail_output.cocktail_name)
+        image_filename = f"cocktail_{safe_name}.png"
+        
+        # Render image
+        image_renderer.render_cocktail_with_polygon(
+            gradient_colors=cocktail_output.gradient_info.colors,
+            output_filename=image_filename,
+        )
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "image_url": f"/static/output/{image_filename}",
+                "ingredient_label": cocktail_output.ingredient_label,
+                "cocktail_name": cocktail_output.cocktail_name,
+                "comfort_message": cocktail_output.comfort_message,
+                "gradient_colors": cocktail_output.gradient_info.colors,
+            }
+        })
+        
+    except Exception as e:
+        print(f"Cocktail generation error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+# ------------------------------------
 
 @app.route('/')
 def index():

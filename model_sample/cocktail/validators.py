@@ -4,7 +4,7 @@ Input validation components for Emotion Cocktail Generator
 입력 데이터의 유효성을 검증하는 컴포넌트들을 포함합니다.
 """
 
-from src.models import TasteInput, ValidationResult
+from cocktail.models import TasteInput, ValidationResult
 
 
 class TasteInputValidator:

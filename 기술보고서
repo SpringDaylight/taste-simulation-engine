@@ -20,7 +20,7 @@
 | **언어** | Python 3.11 |
 | **LLM** | AWS Bedrock (Claude 3 Haiku) |
 | **데이터** | TMDB 영화 데이터 |
-| **라이브러리** | numpy, boto3, wordcloud, matplotlib, Pillow |
+| **라이브러리** | numpy, boto3, wordcloud, matplotlib |
 
 # **2. 핵심 개념 및 이론**
 
@@ -581,57 +581,7 @@ def align_vector(scores_dict, key_list) -> np.array
 
 ---
 
-## **3.4 감정 칵테일 생성기 (Emo-Cocktail)**
-
-### **3.4.1 개념 및 목적**
-
-사용자의 현재 기분이나 취향(맛)을 기반으로 **나만의 칵테일 이미지와 위로의 메시지**를 선물하는 힐링 기능입니다. 영화 추천 외에 시각적이고 감성적인 즐거움을 제공하여 앱의 체류 시간을 늘리고 사용자 경험을 풍부하게 합니다.
-
-### **3.4.2 데이터 흐름**
-
-```mermaid
-graph LR
-    A[사용자 입력] -->|7가지 맛<br/>(Sweet, Spicy...)| B[EmotionCocktail<br/>Generator]
-    
-    B --> C{처리 파이프라인}
-    
-    C -->|1. 비율 계산| D[Top-N 맛 추출]
-    C -->|2. 이미지 생성| E[CocktailImage<br/>Renderer]
-    C -->|3. 텍스트 생성| F[AWS Bedrock<br/>(Claude 3 Haiku)]
-    
-    D --> E
-    D --> F
-    
-    E --> G[칵테일 이미지<br/>(Polygon Art)]
-    F --> H[칵테일 이름<br/>& 위로 메시지]
-    
-    G --> I[최종 결과]
-    H --> I
-```
-
-### **3.4.3 핵심 구현 내용**
-
-**1. 맛(Taste) 기반 다각형 이미지 생성 (`CocktailImageRenderer`)**
-*   **알고리즘**: 입력된 맛의 비율에 따라 이미지 내의 다각형(Polygon) 영역에 그라데이션 색상을 채워 넣습니다.
-*   **동적 색상 매핑**:
-    *   🍬 Sweet → Pink (#FFB7C5)
-    *   🌶️ Spicy → Red (#FF4500)
-    *   🧂 Salty → Blue (#87CEEB)
-    *   (기타 맛별 고유 색상 매핑)
-*   **기술**: Python `PIL` (Pillow) 라이브러리를 사용하여 베이스 이미지 위에 반투명 폴리곤 레이어를 합성합니다.
-
-**2. LLM 기반 메시지 생성 (`EmotionCocktailGenerator`)**
-*   **프롬프트**: "사용자는 지금 40%의 달콤함과 60%의 씁쓸함을 느끼고 있습니다. 이 기분에 어울리는 창의적인 칵테일 이름과 바텐더가 건네는 따뜻한 위로의 한마디를 작성해주세요."
-*   **모델**: Claude 3 Haiku (AWS Bedrock)
-*   **출력**: "달빛 위로", "오늘 하루도 수고 많으셨어요. 이 달콤쌉싸름한 한 잔이 당신의 지친 마음을 달래주길 빕니다."
-
-### **3.4.4 통합 (Integration)**
-*   **API**: `POST /api/cocktail`
-*   **연동**: `app_moviemong.py`에 통합되어 리뷰몽 서비스의 일부로 제공됩니다. 사용자가 별도 입력 없이 기존 데이터를 기반으로 자동 생성할 수도 있습니다.
-
----
-
-## **3.5 데이터베이스 구조 (Database Schema)**
+## **3.4 데이터베이스 구조 (Database Schema)**
 
 데이터베이스는 `data/moviemong.db` (SQLite)에 저장되며, SQLAlchemy ORM을 통해 관리됩니다.
 
@@ -803,7 +753,6 @@ user_preferences.json 갱신
 | **A-5** | LLM 설명 생성 | ✅ 성공 | Bedrock 연결 정상, 설명 품질 우수 |
 | **A-7** | 장르 간 추천 | ✅ 성공 | 중복 0개 확인 |
 | **A-8** | 워드클라우드 | ✅ 성공 | 이미지 생성 정상 |
-| **Emo-Cocktail** | 칵테일 생성 | ✅ 성공 | 이미지 및 위로 메시지 생성 확인 |
 
 ### **5.2 통합 테스트**
 
@@ -947,13 +896,6 @@ model_sample/
 │   ├── group_recommendation.py # [A-6] 그룹 취향 통합 (Least Misery)
 │   ├── clustering.py          # [A-7] 장르 간 추천 (Round-Robin)
 │   └── visualization.py       # [A-8] 워드클라우드 시각화
-│
-├── cocktail/
-│   ├── emotion_cocktail_generator.py # [Cocktail] 칵테일 생성 로직
-│   ├── image_renderer.py             # [Cocktail] 이미지 렌더링
-│   ├── analyzers.py                 # [Cocktail] 분석기
-│   ├── models.py                    # [Cocktail] 데이터 모델
-│   └── validators.py                # [Cocktail] 유효성 검증
 │
 ├── moviemong/
 │   ├── core.py                # [Game] 캐릭터 성장/상태 관리

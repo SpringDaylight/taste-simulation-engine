@@ -30,8 +30,8 @@ class CocktailImageRenderer:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        # 프로젝트 루트(현재 파일 상위 1단계) 기준 경로
-        self.project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # 프로젝트 루트(현재 파일 상위 3단계: cocktail -> model_sample -> root) 기준 경로
+        self.project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         self.allowed_palette = [
             "#FFB7C5",
             "#FF4500",
