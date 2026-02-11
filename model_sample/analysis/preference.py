@@ -7,8 +7,7 @@
 
 import json
 from typing import Dict, List
-import movie_a_2
-
+from . import embedding
 
 def extract_tags_from_movie(movie_profile: Dict) -> List[str]:
     """
@@ -71,7 +70,7 @@ def build_user_preference_from_movies(
             print(f"  ✓ {movie.get('title')}")
             
             # 영화 프로필 생성
-            profile = movie_a_2.build_profile(movie, taxonomy, bedrock_client)
+            profile = embedding.build_profile(movie, taxonomy, bedrock_client)
             
             # 세부 태그 추출
             tags = extract_tags_from_movie(profile)
@@ -86,7 +85,7 @@ def build_user_preference_from_movies(
             print(f"  ✗ {movie.get('title')}")
             
             # 영화 프로필 생성
-            profile = movie_a_2.build_profile(movie, taxonomy, bedrock_client)
+            profile = embedding.build_profile(movie, taxonomy, bedrock_client)
             
             # 세부 태그 추출
             tags = extract_tags_from_movie(profile)
@@ -115,7 +114,7 @@ def build_user_preference_from_movies(
     }
 
 
-def save_user_preference(user_id: str, preference: Dict, output_file: str = "user_preferences.json"):
+def save_user_preference(user_id: str, preference: Dict, output_file: str = "data/user_preferences.json"):
     """
     사용자 취향을 JSON 파일로 저장 (데이터베이스 대신)
     
@@ -141,7 +140,7 @@ def save_user_preference(user_id: str, preference: Dict, output_file: str = "use
     print(f"\n💾 사용자 취향 저장 완료: {output_file}")
 
 
-def load_user_preference(user_id: str, input_file: str = "user_preferences.json") -> Dict:
+def load_user_preference(user_id: str, input_file: str = "data/user_preferences.json") -> Dict:
     """
     저장된 사용자 취향 불러오기
     
@@ -164,14 +163,23 @@ def load_user_preference(user_id: str, input_file: str = "user_preferences.json"
 # CLI 테스트
 if __name__ == '__main__':
     import argparse
+    import os
     
+    # 기본 경로 설정
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    data_dir = os.path.join(base_dir, 'data')
+    
+    default_movies = os.path.join(data_dir, 'movies_dataset_final.json')
+    default_taxonomy = os.path.join(data_dir, 'emotion_tag.json')
+    default_output = os.path.join(data_dir, 'user_preferences.json')
+
     parser = argparse.ArgumentParser(description='영화 선택으로 취향 생성')
     parser.add_argument('--liked', help='좋아하는 영화 ID (쉼표 구분)', required=True)
     parser.add_argument('--disliked', help='싫어하는 영화 ID (쉼표 구분)', required=True)
-    parser.add_argument('--movies', default='movies_dataset_final.json')
-    parser.add_argument('--taxonomy', default='emotion_tag.json')
+    parser.add_argument('--movies', default=default_movies)
+    parser.add_argument('--taxonomy', default=default_taxonomy)
     parser.add_argument('--user-id', default='user_001')
-    parser.add_argument('--output', default='user_preferences.json')
+    parser.add_argument('--output', default=default_output)
     
     args = parser.parse_args()
     
@@ -180,9 +188,9 @@ if __name__ == '__main__':
     disliked_ids = [int(x.strip()) for x in args.disliked.split(',')]
     
     # 데이터 로드
-    movies = movie_a_2.load_json(args.movies)
-    taxonomy = movie_a_2.load_taxonomy(args.taxonomy)
-    bedrock_client = movie_a_2.get_bedrock_client()
+    movies = embedding.load_json(args.movies)
+    taxonomy = embedding.load_taxonomy(args.taxonomy)
+    bedrock_client = embedding.get_bedrock_client()
     
     # 취향 생성
     preference = build_user_preference_from_movies(

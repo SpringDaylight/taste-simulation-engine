@@ -1,15 +1,17 @@
 
 from typing import Optional, Dict
+from database import db
+from models import FlavorStat
 from .core import FLAVORS
-import movie_a_1
-import movie_a_2
+from analysis import sentiment
+from analysis import embedding
 
 class ReviewMixin:
     
     def _get_bedrock_client(self):
         # Core has the attribute, Mixin uses it
         if self.bedrock_client is None:
-            self.bedrock_client = movie_a_2.get_bedrock_client()
+            self.bedrock_client = embedding.get_bedrock_client()
         return self.bedrock_client
 
     def add_review(self, review_text: str, is_detailed: bool = False) -> Dict:
@@ -17,46 +19,54 @@ class ReviewMixin:
         print(f"Adding review: '{review_text}' (Length: {len(review_text)})")
         # 1. 보상
         if is_detailed and len(review_text) >= 50:
-            exp = 30
-            popcorn = 12
+            exp_gain = 30
+            popcorn_gain = 12
             reward_type = "detailed"
         else:
-            exp = 5
-            popcorn = 3
+            exp_gain = 5
+            popcorn_gain = 3
             reward_type = "simple"
             
-        self.add_exp(exp)
-        self.add_popcorn(popcorn)
+        # Core 메소드 활용 (DB 커밋 포함됨 - add_exp, add_popcorn)
+        self.add_exp(exp_gain)
+        self.add_popcorn(popcorn_gain)
         
         # 2. 맛 분석 (LLM)
         flavor_result = self._analyze_flavor_with_llm(review_text)
         flavor_name = FLAVORS[flavor_result]['name']
         
-        # 3. 사용자 데이터 갱신
-        user_data = self.get_user_data()
-        stats = user_data["flavor_stats"]
-        stats[flavor_result] += 1
+        # 3. 사용자 데이터 갱신 (DB)
+        user = self._get_user_model()
         
-        # 메인 맛 갱신
-        main_flavor = max(stats, key=stats.get)
-        self.data[self.user_id]["main_flavor"] = main_flavor
-        self.data[self.user_id]["flavor_stats"] = stats
-        self._save_data()
+        # 해당 맛 스탯 업데이트
+        stat = FlavorStat.query.filter_by(user_id=user.id, flavor_name=flavor_result).first()
+        if stat:
+            stat.score += 1
+        else:
+            # 혹시 없으면 생성 (초기화 시 생성되지만 안전장치)
+            stat = FlavorStat(user_id=user.id, flavor_name=flavor_result, score=1)
+            db.session.add(stat)
+            
+
+        # 메인 맛 갱신 로직 제거 (사용자 요구사항: 성격 변화 기능 미사용)
+        # 3. 사용자 데이터 갱신 (DB) - 맛 스탯만 업데이트하고 메인 맛은 변경하지 않음
+        
+        db.session.commit()
         
         return {
             "success": True,
             "reward": {
                 "type": reward_type,
-                "exp": exp,
-                "popcorn": popcorn
+                "exp": exp_gain,
+                "popcorn": popcorn_gain
             },
             "analysis": {
                 "flavor": flavor_result,
                 "flavor_name": flavor_name,
-                "main_flavor": main_flavor,
-                "main_flavor_name": FLAVORS[main_flavor]['name']
+                "main_flavor": user.main_flavor,
+                "main_flavor_name": FLAVORS[user.main_flavor]['name']
             },
-            "message": f"{flavor_name} 팝콘 획득! (EXP +{exp}, 팝콘 +{popcorn})"
+            "message": f"{flavor_name} 팝콘 획득! (EXP +{exp_gain}, 팝콘 +{popcorn_gain})"
         }
 
     def _analyze_flavor_with_llm(self, text: str) -> str:
@@ -71,7 +81,7 @@ class ReviewMixin:
             
         try:
             client = self._get_bedrock_client()
-            analysis = movie_a_1.analyze_user_preference_with_llm(text, self.taxonomy, client)
+            analysis = sentiment.analyze_user_preference_with_llm(text, self.taxonomy, client)
             
             emotion_scores = analysis.get('emotion_scores', {})
             flavor_scores = {k: 0.0 for k in FLAVORS.keys()}

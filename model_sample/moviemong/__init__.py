@@ -9,30 +9,29 @@ from .question import DailyQuestionMixin
 from .review import ReviewMixin
 from .feeding import FeedingMixin
 from .theme import ThemeMixin
-import movie_a_2
+from analysis import embedding
 
 class MovieMong(MovieMongCore, DailyQuestionMixin, ReviewMixin, FeedingMixin, ThemeMixin):
     """
     Review Mong Main Class.
     Inherits from functional mixins to provide a unified interface.
     """
-    def __init__(self, user_id: str, data_file: str = "moviemong_data.json"):
+    def __init__(self, user_id: str):
         # Initialize Core
-        super().__init__(user_id, data_file)
+        super().__init__(user_id)
         
         # Load Taxonomy (used by ReviewMixin)
         try:
-            # 패키지 내부의 emotion_tag.json 경로 찾기
-            # 구조: .../model_sample/moviemong/__init__.py
-            # 목표: .../model_sample/emotion_tag.json
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            taxonomy_path = os.path.join(base_dir, "emotion_tag.json")
+            # 패키지 구조: .../model_sample/moviemong/__init__.py
+            # 목표: .../data/emotion_tag.json
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            taxonomy_path = os.path.join(base_dir, "data", "emotion_tag.json")
             
             if os.path.exists(taxonomy_path):
-                self.taxonomy = movie_a_2.load_taxonomy(taxonomy_path)
+                self.taxonomy = embedding.load_taxonomy(taxonomy_path)
             else:
-                 # CWD 기준 (fallback)
-                 self.taxonomy = movie_a_2.load_taxonomy("model_sample/emotion_tag.json")
+                 # Fallback
+                 self.taxonomy = embedding.load_taxonomy("data/emotion_tag.json")
         except:
                 self.taxonomy = {}
                 print("⚠️ Taxonomy 로드 실패: 기본 분석만 가능합니다.")
@@ -77,7 +76,7 @@ class MovieMong(MovieMongCore, DailyQuestionMixin, ReviewMixin, FeedingMixin, Th
             },
             "daily_status": {
                 "can_answer_question": can_answer,
-                "today_question": daily_q_info["question"] if daily_q_info["can_answer"] else None
+                "today_question": daily_q_info["question"]
             }
         }
 

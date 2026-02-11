@@ -544,7 +544,11 @@
 
                 setTimeout(() => {
                     isSpinning = false;
-                    document.getElementById('feeding-result').innerText = `🎉 ${data.prize} 당첨!`;
+                    let msg = `🎉 ${data.prize} 당첨!`;
+                    if (data.reward) {
+                        msg += ` (EXP +${data.reward.exp}, 팝콘 +${data.reward.popcorn})`;
+                    }
+                    document.getElementById('feeding-result').innerText = msg;
                     alert(data.message);
                     loadHomeData(); // 팝콘 갱신
                 }, 3000); // 3초 애니메이션

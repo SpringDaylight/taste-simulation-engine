@@ -6,7 +6,7 @@ import math
 from typing import Dict, List
 
 import numpy as np
-import movie_a_2
+from . import embedding
 
 
 # 코사인 유사도 계산
@@ -250,17 +250,17 @@ def main():
     parser.add_argument('--limit', type=int, default=10)
     args = parser.parse_args()
 
-    taxonomy = movie_a_2.load_taxonomy(args.taxonomy)
-    movies = movie_a_2.load_json(args.movies)
+    taxonomy = embedding.load_taxonomy(args.taxonomy)
+    movies = embedding.load_json(args.movies)
 
     # Build user profile from text
     user_profile = {
-        'emotion_scores': movie_a_2.score_tags(args.user_text, taxonomy['emotion']['tags']),
-        'narrative_traits': movie_a_2.score_tags(args.user_text, taxonomy['story_flow']['tags']),
+        'emotion_scores': embedding.score_tags(args.user_text, taxonomy['emotion']['tags']),
+        'narrative_traits': embedding.score_tags(args.user_text, taxonomy['story_flow']['tags']),
         'ending_preference': {
-            'happy': movie_a_2.stable_score(args.user_text, 'ending_happy'),
-            'open': movie_a_2.stable_score(args.user_text, 'ending_open'),
-            'bittersweet': movie_a_2.stable_score(args.user_text, 'ending_bittersweet'),
+            'happy': embedding.stable_score(args.user_text, 'ending_happy'),
+            'open': embedding.stable_score(args.user_text, 'ending_open'),
+            'bittersweet': embedding.stable_score(args.user_text, 'ending_bittersweet'),
         },
     }
 
@@ -268,7 +268,7 @@ def main():
 
     scored = []
     for m in movies:
-        mp = movie_a_2.build_profile(m, taxonomy)
+        mp = embedding.build_profile(m, taxonomy)
         
         # 새로운 확률 계산 함수 사용
         result = calculate_satisfaction_probability(
@@ -295,3 +295,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

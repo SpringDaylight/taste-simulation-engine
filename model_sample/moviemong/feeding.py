@@ -1,4 +1,4 @@
-
+from datetime import date
 import random
 from typing import Dict, Optional
 
@@ -76,6 +76,19 @@ class FeedingMixin:
                 "message": str       # 결과 메시지
             }
         """
+        # 0. 1일 1회 제한 확인 (오늘 이미 밥을 줬는지 체크)
+        user_data = self.get_user_data()
+        today = date.today().isoformat()
+        
+        if user_data.get('last_feeding_date') == today:
+            return {
+                "success": False,
+                "prize": "None",
+                "target_angle": 0,
+                "message": "오늘은 이미 밥을 주셨어요! 내일 또 오세요. 🌙",
+                "reward": {"exp": 0, "popcorn": 0}
+            }
+
         # 엔진 초기화 (또는 클래스 멤버로 유지 가능)
         prob_engine = ProbabilityEngine()
         angle_calc = AngleCalculator()
@@ -112,7 +125,11 @@ class FeedingMixin:
         if hasattr(self, 'add_popcorn'):
             self.add_popcorn(reward['popcorn'])
 
+        # 4. 마지막 밥준 날짜 업데이트
+        self._update_user_data('last_feeding_date', today)
+
         return {
+            "success": True,
             "prize": prize,
             "target_angle": angle,
             "message": messages.get(prize, "축하합니다!"),

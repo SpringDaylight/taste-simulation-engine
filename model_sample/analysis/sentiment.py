@@ -1,14 +1,14 @@
-## A-1 정서 기반 취향 모델링
+﻿## A-1 정서 기반 취향 모델링
 
 import argparse
 import json
 from typing import Dict, List
 
-import movie_a_2
+from . import embedding
 
 
 # 사용자 텍스트에서 취향 프로필 생성 (더미 버전)
-# LLM 연동 후: 실제 감성 분석으로 대체
+# LLM 연동 후 실제 감성 분석으로 대체
 def build_user_profile(user_text: str, taxonomy: Dict) -> Dict:
     """
     사용자가 입력한 텍스트를 분석하여 취향 프로필 생성
@@ -25,12 +25,12 @@ def build_user_profile(user_text: str, taxonomy: Dict) -> Dict:
     
     profile = {
         'user_text': user_text,
-        'emotion_scores': movie_a_2.score_tags(user_text, e_keys),
-        'narrative_traits': movie_a_2.score_tags(user_text, n_keys),
+        'emotion_scores': embedding.score_tags(user_text, e_keys),
+        'narrative_traits': embedding.score_tags(user_text, n_keys),
         'ending_preference': {
-            'happy': movie_a_2.stable_score(user_text, 'ending_happy'),
-            'open': movie_a_2.stable_score(user_text, 'ending_open'),
-            'bittersweet': movie_a_2.stable_score(user_text, 'ending_bittersweet'),
+            'happy': embedding.stable_score(user_text, 'ending_happy'),
+            'open': embedding.stable_score(user_text, 'ending_open'),
+            'bittersweet': embedding.stable_score(user_text, 'ending_bittersweet'),
         },
     }
     
@@ -69,7 +69,7 @@ def build_user_profile_with_dislikes(likes: str, dislikes: str, taxonomy: Dict) 
         taxonomy: 정서 태그 분류 체계
     
     Returns:
-        선호도 프로필 + 비선호 태그 리스트
+        선호 프로필 + 비선호 태그 리스트
     """
     e_keys = taxonomy['emotion']['tags']
     n_keys = taxonomy['story_flow']['tags']
@@ -80,7 +80,7 @@ def build_user_profile_with_dislikes(likes: str, dislikes: str, taxonomy: Dict) 
     # 비선호 태그 추출 (간단한 키워드 매칭)
     dislike_tags = []
     if dislikes:
-        dislike_scores = movie_a_2.score_tags(dislikes, e_keys)
+        dislike_scores = embedding.score_tags(dislikes, e_keys)
         # 점수가 높은 태그들을 비선호 목록에 추가
         for tag, score in dislike_scores.items():
             if score > 0.6:  # 임계값
@@ -99,8 +99,8 @@ def extract_negative_filters_with_llm(user_text: str, bedrock_client=None) -> Di
     """
     LLM을 사용하여 사용자 입력에서 제외 조건 추출 (메인 방식)
     
-    Problem: "무서운 거 싫어" → 키워드 매칭 시 "무서운" 감지 → 공포 영화 추천 (잘못됨!)
-    Solution: LLM으로 부정 의도 파악 → exclude_tags에 추가 → 필터링
+    Problem: "무서운 거 싫어" -> 키워드 매칭 -> "무서운" 감지 -> 공포 영화 추천 (잘못됨)
+    Solution: LLM으로 부정 의도 파악 후 exclude_tags에 추가 -> 필터링
     
     Args:
         user_text: "무서운 거 싫어. 로맨스 좋아해요"
@@ -109,7 +109,7 @@ def extract_negative_filters_with_llm(user_text: str, bedrock_client=None) -> Di
     Returns:
         {
             "exclude_genres": ["Horror", "Thriller"],
-            "exclude_tags": ["무서워요", "소름 돋아요"],
+            "exclude_tags": ["무서워요", "피가 튀어"],
             "include_genres": ["Romance"],
             "include_tags": ["로맨틱해요", "설레요"]
         }
@@ -132,34 +132,34 @@ def extract_negative_filters_with_llm(user_text: str, bedrock_client=None) -> Di
         )
     
     # 프롬프트 생성
-    prompt = f"""당신은 영화 추천 시스템의 사용자 의도 파서입니다.
+    prompt = f"""당신은 영화 추천 시스템의 사용자 의도 분석가입니다.
 
 사용자 입력: "{user_text}"
 
 이 텍스트에서 다음을 정확히 추출해주세요:
 
-1. **싫어하는/제외하고 싶은** 장르나 감정 태그 (부정어: "싫어", "제외", "말고", "빼고" 등과 함께 언급된 것)
-2. **좋아하는/포함하고 싶은** 장르나 감정 태그 (긍정어: "좋아", "원해", "보고싶어" 등과 함께 언급된 것)
+1. **싫어하는/제외하고 싶은** 장르와 감정 태그 (부정어: "싫어", "제외", "말고", "빼고" 등과 함께 언급된 것)
+2. **좋아하는/포함하고 싶은** 장르와 감정 태그 (긍정어: "좋아", "원해", "보고싶어" 등과 함께 언급된 것)
 
 다음 장르 목록을 참고하세요:
 - 액션(Action), 코미디(Comedy), 드라마(Drama), 로맨스(Romance), 공포(Horror), 스릴러(Thriller), SF(SF), 애니메이션(Animation)
 
 다음 태그 목록을 참고하세요:
-- 감정: 감동적이에요, 무서워요, 소름 돋아요, 슬퍼요, 웃겨요, 로맨틱해요, 긴장돼요, 통쾌해요, 우울해요
+- 감정: 감동적이에요, 무서워요, 피가 튀어, 슬퍼요, 웃겨요, 로맨틱해요, 긴장돼요, 통쾌해요, 우울해요
 - 서사: 반전이 많아요, 전개가 빨라요, 기승전결이 뚜렷해요
 
-**중요**: 반드시 JSON 형식으로만 답변하세요. 설명 없이 JSON만 출력하세요.
+**중요**: 반드시 JSON 형식으로만 답하세요. 추가 설명 없이 JSON만 출력하세요.
 
 {{
-    "exclude_genres": ["제외할 장르들"],
-    "exclude_tags": ["제외할 태그들"],
-    "include_genres": ["포함할 장르들"],
-    "include_tags": ["포함할 태그들"]
+    "exclude_genres": ["제외할 장르"],
+    "exclude_tags": ["제외할 태그"],
+    "include_genres": ["포함할 장르"],
+    "include_tags": ["포함할 태그"]
 }}
 
 예시:
 입력: "무서운 거 싫어. 로맨스 좋아"
-출력: {{"exclude_genres": ["Horror"], "exclude_tags": ["무서워요", "소름 돋아요"], "include_genres": ["Romance"], "include_tags": ["로맨틱해요", "설레요"]}}
+출력: {{"exclude_genres": ["Horror"], "exclude_tags": ["무서워요", "피가 튀어"], "include_genres": ["Romance"], "include_tags": ["로맨틱해요", "설레요"]}}
 """
     
     # Bedrock 호출
@@ -199,7 +199,7 @@ def extract_negative_filters_with_llm(user_text: str, bedrock_client=None) -> Di
     
     except Exception as e:
         print(f"⚠️ LLM 부정어 추출 실패: {e}")
-        print("   → 규칙 기반 백업 사용")
+        print("   -> 규칙 기반 백업 사용")
         
         # Fallback: 규칙 기반 부정어 검출
         return detect_negation_fallback(user_text)
@@ -207,13 +207,13 @@ def extract_negative_filters_with_llm(user_text: str, bedrock_client=None) -> Di
 
 def detect_negation_fallback(text: str) -> Dict:
     """
-    LLM 실패 시 백업용 규칙 기반 부정어 검출 (개선 v3)
+    LLM 실패 시 백업용 규칙 기반 부정어 검출 (개선 V3)
     
-    개선점 v3:
-    - 부분 문자열 매칭 강화 ("무섭거나" → "무서" 감지)
-    - 연결어 처리 ("거나", "하거나")
+    개선된 V3:
+    - 부분 문자열 매칭 강화 ("무섭거나" -> "무서" 감지)
+    - 연결어 처리 ("거나", "하거")
     - 부정어/긍정어 키워드 확장
-    - 더 정확한 문맥 파싱
+    - 불정확한 문맥 조심
     
     Args:
         text: 사용자 입력
@@ -222,11 +222,11 @@ def detect_negation_fallback(text: str) -> Dict:
         필터 딕셔너리
     """
     NEGATION_KEYWORDS = [
-        "싫어", "제외", "말고", "빼고", "아니", "안", "싫다", 
-        "NO", "No", "싫고", "제거", "거부", "없이", "빼"
+        "싫어", "제외", "말고", "빼고", "아니", "안", "않다", 
+        "NO", "No", "닫고", "제거", "거부", "없이", "별로"
     ]
     POSITIVE_KEYWORDS = [
-        "좋아", "추천", "원해", "보고싶", "찾", "선호", "좋다", "원함"
+        "좋아", "추천", "원해", "보고", "참", "선호", "좋다", "원함"
     ]
     
     GENRE_MAP = {
@@ -235,27 +235,31 @@ def detect_negation_fallback(text: str) -> Dict:
         "호러": "Horror",
         "스릴": "Thriller",
         "액션": "Action",
-        "코미디": "Comedy",
-        "코메디": "Comedy",
+        "코미": "Comedy",
+        "개그": "Comedy",
         "로맨": "Romance",
-        "드라마": "Drama",
+        "멜로": "Romance",
+        "드라": "Drama",
         "SF": "SF",
+        "에스에프": "SF",
         "애니": "Animation",
-        "판타지": "Fantasy",
+        "만화": "Animation",
+        "판타": "Fantasy",
         "다큐": "Documentary",
     }
     TAG_MAP = {
         "무서": "무서워요",
         "공포": "무서워요",
-        "소름": "소름 돋아요",
-        "슬프": "슬퍼요",
+        "피가": "피가 튀어",
+        "슬픈": "슬퍼요",
+        "슬퍼": "슬퍼요",
         "우울": "우울해요",
         "긴장": "긴장돼요",
         "감동": "감동적이에요",
         "어두": "어두운 분위기예요",
         "반전": "반전이 많아요",
-        "웃": "웃겨요",
-        "밝": "밝은 분위기예요",
+        "웃긴": "웃겨요",
+        "재미": "통쾌해요",
         "잔인": "잔인해요",
         "폭력": "폭력적이에요",
     }
@@ -265,12 +269,12 @@ def detect_negation_fallback(text: str) -> Dict:
     include_genres = []
     include_tags = []
     
-    # 텍스트 전처리: "거나", "하거나" → "," 로 변환
+    # 텍스트 전처리: "거나", "하거" -> "," 로 변경
     import re
-    text = re.sub(r'[하]?거나', ',', text)
+    text = re.sub(r'(거나|하거)', ',', text)
     
-    # 문장을 마침표/쉼표로 분리
-    sentences = re.split(r'[.。,]', text)
+    # 문장을 마침표나 쉼표로 분리
+    sentences = re.split(r'[.,]', text)
     
     for sentence in sentences:
         sentence = sentence.strip()
@@ -280,11 +284,11 @@ def detect_negation_fallback(text: str) -> Dict:
         has_negation = any(neg in sentence for neg in NEGATION_KEYWORDS)
         has_positive = any(pos in sentence for pos in POSITIVE_KEYWORDS)
         
-        # 케이스 1: 부정어만 있음 → 제외 목록
+        # 케이스 1: 부정어만 있음 -> 제외 목록
         if has_negation and not has_positive:
             # 개선: 부분 매칭으로 모든 키워드 검사
             for keyword, genre in GENRE_MAP.items():
-                # "무서" in "무섭거나" → True
+                # "무서" in "무섭거나" -> True
                 if keyword in sentence and genre not in exclude_genres:
                     exclude_genres.append(genre)
             
@@ -292,7 +296,7 @@ def detect_negation_fallback(text: str) -> Dict:
                 if keyword in sentence and tag not in exclude_tags:
                     exclude_tags.append(tag)
         
-        # 케이스 2: 긍정어만 있음 → 포함 목록
+        # 케이스 2: 긍정어만 있음 -> 포함 목록
         elif has_positive and not has_negation:
             for keyword, genre in GENRE_MAP.items():
                 if keyword in sentence and genre not in include_genres:
@@ -302,8 +306,8 @@ def detect_negation_fallback(text: str) -> Dict:
                 if keyword in sentence and tag not in include_tags:
                     include_tags.append(tag)
         
-        # 케이스 3: 부정어와 긍정어 둘 다 있음 (복잡)
-        # "A 말고 B" → A 제외, B 포함
+        # 케이스 3: 부정어와 긍정어가 섞여 있음 (복잡)
+        # "A 말고 B" -> A 제외, B 포함
         elif has_negation and has_positive:
             # 부정어 위치 찾기
             neg_positions = []
@@ -325,7 +329,7 @@ def detect_negation_fallback(text: str) -> Dict:
                 min_neg_pos = min(neg_positions)
                 max_pos_pos = max(pos_positions)
                 
-                # 부정어 앞 부분 → 제외 (부분 매칭)
+                # 부정어 앞 부분 -> 제외 (부분 매칭)
                 before_neg = sentence[:min_neg_pos]
                 for keyword, genre in GENRE_MAP.items():
                     if keyword in before_neg and genre not in exclude_genres:
@@ -334,7 +338,7 @@ def detect_negation_fallback(text: str) -> Dict:
                     if keyword in before_neg and tag not in exclude_tags:
                         exclude_tags.append(tag)
                 
-                # 긍정어 주변 부분 → 포함 (부분 매칭)
+                # 긍정어 주변 부분 -> 포함 (부분 매칭)
                 around_pos = sentence[max_pos_pos-10:max_pos_pos+20]
                 for keyword, genre in GENRE_MAP.items():
                     if keyword in around_pos and genre not in include_genres:
@@ -360,7 +364,7 @@ def build_user_profile_with_negation(user_text: str, taxonomy: Dict, bedrock_cli
     부정어 처리를 적용한 사용자 프로필 생성 (A-1 개선 버전)
     
     우선순위:
-    1. LLM으로 부정/긍정 의도 파싱 시도
+    1. LLM으로 부정/긍정 의도 파악 시도
     2. 실패 시 자동으로 규칙 기반 백업 사용
     
     Args:
@@ -382,7 +386,7 @@ def build_user_profile_with_negation(user_text: str, taxonomy: Dict, bedrock_cli
             'method_used': 'llm' or 'rule_based'
         }
     """
-    # 1. LLM으로 부정/긍정 의도 파싱 (자동 Fallback 포함)
+    # 1. LLM으로 부정/긍정 의도 파악 (자동 Fallback 포함)
     filters = extract_negative_filters_with_llm(user_text, bedrock_client)
     
     # 2. 긍정 부분만으로 프로필 생성
@@ -401,10 +405,10 @@ def build_user_profile_with_negation(user_text: str, taxonomy: Dict, bedrock_cli
     return profile
 
 
-# LLM 연동용 함수 (구현 완료)
+# LLM 연동된 함수 (구현 완료)
 def analyze_user_preference_with_llm(user_text: str, taxonomy: Dict, bedrock_client=None) -> Dict:
     """
-    LLM을 사용한 정교한 사용자 취향 분석
+    LLM을 사용하여 정교한 사용자 취향 분석
     
     키워드 매칭보다 문맥을 더 잘 이해하여 정확한 점수 부여
     
@@ -440,7 +444,7 @@ def analyze_user_preference_with_llm(user_text: str, taxonomy: Dict, bedrock_cli
             )
         except Exception as e:
             print(f"⚠️ Bedrock 클라이언트 생성 실패: {e}")
-            print("   → 키워드 매칭으로 대체")
+            print("   -> 키워드 매칭으로 대체")
             return _fallback_keyword_matching(user_text, taxonomy)
     
     # 태그 목록 생성
@@ -460,17 +464,17 @@ def analyze_user_preference_with_llm(user_text: str, taxonomy: Dict, bedrock_cli
 **서사 태그:**
 {', '.join(narrative_tags)}
 
-**결말 선호도:**
+**결말 선호:**
 - 해피엔딩 (happy)
 - 열린결말 (open)
 - 비터스윗 (bittersweet)
 
 **중요 규칙:**
 1. 사용자가 명시적으로 언급한 태그는 0.7~1.0 점수
-2. 문맥상 관련 있는 태그는 0.4~0.7 점수
-3. 관련 없는 태그는 0.0~0.3 점수
-4. 모든 태그에 점수를 부여하세요
-5. 반드시 JSON 형식으로만 답변하세요 (설명 없이)
+2. 문맥상 관련이 있는 태그는 0.4~0.7 점수
+3. 관련이 없는 태그는 0.0~0.3 점수
+4. 모든 태그의 점수를 부여하세요
+5. 반드시 JSON 형식으로만 답하세요 (설명 없이)
 
 JSON 형식:
 {{
@@ -518,12 +522,12 @@ JSON 형식:
             'user_text': user_text
         }
         
-        print("✅ LLM 분석 완료 (Claude 사용)")
+        print("✨ LLM 분석 완료 (Claude 사용)")
         return profile
         
     except Exception as e:
         print(f"⚠️ LLM 분석 실패: {e}")
-        print("   → 키워드 매칭으로 대체")
+        print("   -> 키워드 매칭으로 대체")
         return _fallback_keyword_matching(user_text, taxonomy)
 
 
@@ -537,12 +541,12 @@ def _fallback_keyword_matching(user_text: str, taxonomy: Dict) -> Dict:
     
     profile = {
         'user_text': user_text,
-        'emotion_scores': movie_a_2.score_tags(user_text, e_keys),
-        'narrative_traits': movie_a_2.score_tags(user_text, n_keys),
+        'emotion_scores': embedding.score_tags(user_text, e_keys),
+        'narrative_traits': embedding.score_tags(user_text, n_keys),
         'ending_preference': {
-            'happy': movie_a_2.stable_score(user_text, 'ending_happy'),
-            'open': movie_a_2.stable_score(user_text, 'ending_open'),
-            'bittersweet': movie_a_2.stable_score(user_text, 'ending_bittersweet'),
+            'happy': embedding.stable_score(user_text, 'ending_happy'),
+            'open': embedding.stable_score(user_text, 'ending_open'),
+            'bittersweet': embedding.stable_score(user_text, 'ending_bittersweet'),
         },
         'method_used': 'keyword_matching'
     }
@@ -553,13 +557,13 @@ def _fallback_keyword_matching(user_text: str, taxonomy: Dict) -> Dict:
 def main():
     parser = argparse.ArgumentParser(description='A-1 User Preference Analysis (dummy LLM)')
     parser.add_argument('--taxonomy', default='emotion_tag.json')
-    parser.add_argument('--user-text', required=True, help='사용자 선호도 텍스트')
+    parser.add_argument('--user-text', required=True, help='사용자 선호 텍스트')
     parser.add_argument('--dislikes', default='', help='싫어하는 것 (선택)')
     parser.add_argument('--output', default=None, help='출력 파일 경로')
-    parser.add_argument('--pretty', action='store_true', help='JSON 포맷팅')
+    parser.add_argument('--pretty', action='store_true', help='JSON 정렬')
     args = parser.parse_args()
     
-    taxonomy = movie_a_2.load_taxonomy(args.taxonomy)
+    taxonomy = embedding.load_taxonomy(args.taxonomy)
     
     if args.dislikes:
         profile = build_user_profile_with_dislikes(args.user_text, args.dislikes, taxonomy)

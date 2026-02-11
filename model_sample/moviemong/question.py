@@ -1,28 +1,28 @@
 
 import os
 import json
-from datetime import date
 from typing import List, Dict
+from datetime import date
+from database import db
+from models import QuestionHistory
 
+START_QUESTIONS_FILE = "start_questions.json"
 DAILY_QUESTIONS_FILE = "daily_questions.json"
 
 class DailyQuestionMixin:
+
     def _load_questions(self) -> List[str]:
         """질문 리스트 로드"""
-        # 현재 작업 디렉토리 기준
-        if os.path.exists(DAILY_QUESTIONS_FILE):
+        # moviemong 패키지의 상위 폴더(model_sample)의 상위 폴더(루트) -> data 폴더 접근
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        file_path = os.path.join(base_dir, 'data', DAILY_QUESTIONS_FILE)
+        
+        if os.path.exists(file_path):
             try:
-                with open(DAILY_QUESTIONS_FILE, 'r', encoding='utf-8') as f:
+                with open(file_path, 'r', encoding='utf-8') as f:
                     return json.load(f)
             except Exception as e:
                 print(f"⚠️ 질문 파일 로드 실패: {e}")
-        # 상위 디렉토리 체크 (패키지 내부에서 실행 시)
-        elif os.path.exists(os.path.join("..", DAILY_QUESTIONS_FILE)):
-            try:
-                with open(os.path.join("..", DAILY_QUESTIONS_FILE), 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except:
-                pass
                 
         return ["오늘의 영화 추천은 무엇인가요?"] # 기본 질문
 
@@ -31,8 +31,13 @@ class DailyQuestionMixin:
         user_data = self.get_user_data()
         today = date.today().isoformat()
         
+
         questions = self._load_questions()
         idx = user_data.get("current_question_index", 0)
+
+        # 이미 오늘 답변했다면, 방금 답변한 질문(이전 인덱스)을 보여줌
+        if user_data.get("last_question_date") == today and idx > 0:
+            idx = idx - 1
         
         result = {
             "question_id": idx,
@@ -59,29 +64,35 @@ class DailyQuestionMixin:
     def answer_daily_question(self, answer: str) -> Dict:
         """데일리 질문 답변 및 보상"""
         today = date.today().isoformat()
-        user_data = self.get_user_data()
+        user = self._get_user_model()
         
-        if user_data.get("last_question_date") == today:
+        if user.last_question_date == today:
             return {"success": False, "message": "오늘은 이미 답변했습니다."}
 
-        current_idx = user_data.get("current_question_index", 0)
-        self._update_user_data("current_question_index", current_idx + 1)
+        current_idx = user.current_question_index
+        user.current_question_index = current_idx + 1
         
         reward_exp = 20
         reward_popcorn = 5
         
+        # 보상 지급 (Core 메소드 활용 - 내부적으로 commit 호출)
         self.add_exp(reward_exp)
         self.add_popcorn(reward_popcorn)
-        self._update_user_data("last_question_date", today)
+        
+        # 마지막 답변 날짜 업데이트
+        user.last_question_date = today
         
         # 히스토리 저장
-        history_item = {
-            "date": today,
-            "question": self._load_questions()[current_idx],
-            "answer": answer
-        }
-        user_data.setdefault("question_history", []).append(history_item)
-        self._save_data()
+        question_text = self._load_questions()[current_idx] if current_idx < len(self._load_questions()) else "Unknown Question"
+        
+        history_item = QuestionHistory(
+            user_id=user.id,
+            date=today,
+            question=question_text,
+            answer=answer
+        )
+        db.session.add(history_item)
+        db.session.commit()
         
         return {
             "success": True,
@@ -91,4 +102,7 @@ class DailyQuestionMixin:
 
     def get_question_history(self) -> List[Dict]:
         """질문/답변 히스토리 반환"""
+        # Core의 get_user_data에서 이미 변환해서 주므로 그대로 반환해도 됨
+        # 또는 직접 DB 조회해도 됨. 
+        # 여기서는 get_user_data()가 이미 history 리스트를 포함하므로 재사용
         return self.get_user_data().get("question_history", [])

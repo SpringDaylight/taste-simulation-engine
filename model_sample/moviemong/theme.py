@@ -1,4 +1,6 @@
 from typing import Dict, List
+from database import db
+from models import ThemeInventory
 
 class ThemeMixin:
     """
@@ -14,19 +16,25 @@ class ThemeMixin:
 
     def get_shop_items(self) -> List[Dict]:
         """상점 아이템 목록 반환"""
-        user_data = self.get_user_data()
-        owned = user_data.get("owned_themes", ["basic"])
-        applied = user_data.get("applied_theme", "basic")
+        user = self._get_user_model()
+        
+        # 보유 테마 및 적용 테마 조회
+        inventory = {item.theme_id: item for item in user.inventory}
         
         items = []
         for tid, info in self.THEMES.items():
+            is_owned = tid in inventory
+            is_applied = False
+            if is_owned:
+                is_applied = inventory[tid].is_applied
+                
             items.append({
                 "id": tid,
                 "name": info["name"],
                 "price": info["price"],
                 "desc": info["desc"],
-                "is_owned": tid in owned,
-                "is_applied": tid == applied
+                "is_owned": is_owned,
+                "is_applied": is_applied
             })
         return items
 
@@ -35,36 +43,43 @@ class ThemeMixin:
         if theme_id not in self.THEMES:
             return {"success": False, "message": "존재하지 않는 테마입니다."}
             
-        user_data = self.get_user_data()
-        owned = user_data.get("owned_themes", ["basic"])
+        user = self._get_user_model()
         
-        if theme_id in owned:
+        # 이미 보유 중인지 확인
+        existing_item = ThemeInventory.query.filter_by(user_id=user.id, theme_id=theme_id).first()
+        if existing_item:
             return {"success": False, "message": "이미 보유한 테마입니다."}
             
         price = self.THEMES[theme_id]["price"]
-        if user_data["popcorn"] < price:
+        if user.popcorn < price:
             return {"success": False, "message": f"팝콘이 부족합니다. (필요: {price})"}
             
-        # 구매 처리
-        self.data[self.user_id]["popcorn"] -= price
-        self.data[self.user_id].setdefault("owned_themes", []).append(theme_id)
-        self._save_data()
+        # 구매 처리 (팝콘 차감 및 아이템 추가)
+        user.popcorn -= price
+        new_item = ThemeInventory(user_id=user.id, theme_id=theme_id, is_applied=False)
+        db.session.add(new_item)
+        db.session.commit()
         
         return {
             "success": True, 
             "message": f"'{self.THEMES[theme_id]['name']}' 테마를 구매했습니다!",
-            "new_popcorn": self.data[self.user_id]["popcorn"]
+            "new_popcorn": user.popcorn
         }
 
     def apply_theme(self, theme_id: str) -> Dict:
         """테마 적용"""
-        user_data = self.get_user_data()
-        owned = user_data.get("owned_themes", ["basic"])
+        user = self._get_user_model()
         
-        if theme_id not in owned:
+        # 보유 확인
+        target_item = ThemeInventory.query.filter_by(user_id=user.id, theme_id=theme_id).first()
+        if not target_item:
              return {"success": False, "message": "보유하지 않은 테마입니다."}
              
-        self.data[self.user_id]["applied_theme"] = theme_id
-        self._save_data()
+        # 기존 적용 해제
+        ThemeInventory.query.filter_by(user_id=user.id, is_applied=True).update({"is_applied": False})
+        
+        # 새 테마 적용
+        target_item.is_applied = True
+        db.session.commit()
         
         return {"success": True, "message": f"테마가 적용되었습니다!"}

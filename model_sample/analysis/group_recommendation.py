@@ -1,21 +1,21 @@
-import argparse
+﻿import argparse
 import json
 from typing import Any, Dict, List, Optional
 
-import movie_a_2
-from movie_a_3 import calculate_satisfaction_probability
+from . import embedding
+from .similarity import calculate_satisfaction_probability
 
 
 def build_user_profile(user_text: str, taxonomy: Dict[str, Any]) -> Dict[str, Any]:
     emotion_tags = taxonomy["emotion"]["tags"]
     story_tags = taxonomy["story_flow"]["tags"]
     return {
-        "emotion_scores": movie_a_2.score_tags(user_text, emotion_tags),
-        "narrative_traits": movie_a_2.score_tags(user_text, story_tags),
+        "emotion_scores": embedding.score_tags(user_text, emotion_tags),
+        "narrative_traits": embedding.score_tags(user_text, story_tags),
         "ending_preference": {
-            "happy": movie_a_2.stable_score(user_text, "ending_happy"),
-            "open": movie_a_2.stable_score(user_text, "ending_open"),
-            "bittersweet": movie_a_2.stable_score(user_text, "ending_bittersweet"),
+            "happy": embedding.stable_score(user_text, "ending_happy"),
+            "open": embedding.stable_score(user_text, "ending_open"),
+            "bittersweet": embedding.stable_score(user_text, "ending_bittersweet"),
         },
     }
 
@@ -65,7 +65,7 @@ def find_movie(movies: List[Dict[str, Any]], movie_id: Optional[str], movie_titl
             if str(movie.get("title", "")).lower() == target_title:
                 return movie
 
-    raise ValueError("대상 영화를 찾을 수 없습니다. --movie-id 또는 --movie-title을 확인하세요.")
+    raise ValueError("해당 영화를 찾을 수 없습니다. --movie-id 또는 --movie-title을 확인하세요.")
 
 
 def top_tags(score_map: Dict[str, Any], n: int = 2) -> List[str]:
@@ -92,7 +92,7 @@ def build_movie_style_text(movie_profile: Dict[str, Any]) -> str:
         return f"이 영화는 {', '.join(emotion_tags)} 정서 톤을 가지고 있어요"
     if narrative_tags:
         return f"이 영화는 {', '.join(narrative_tags)} 서사 초점을 가지고 있어요"
-    return "이 영화는 뚜렷한 정서 톤과 서사 초점을 가지고 있어요"
+    return "이 영화는 특별한 정서 톤과 서사 초점을 가지고 있어요"
 
 
 def to_satisfaction_level(probability: float) -> str:
@@ -108,7 +108,7 @@ def to_satisfaction_level(probability: float) -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="A-6 group movie satisfaction")
+    parser = argparse.ArgumentParser(description="A-6 Group Movie Satisfaction (그룹 영화 만족도)")
     parser.add_argument("--movies", default="movies_dataset_final.json")
     parser.add_argument("--taxonomy", default="emotion_tag.json")
     parser.add_argument("--movie-id", default=None)
@@ -119,12 +119,12 @@ def main() -> None:
     parser.add_argument("--boost-weight", type=float, default=0.5)
     args = parser.parse_args()
 
-    taxonomy = movie_a_2.load_taxonomy(args.taxonomy)
-    movies = movie_a_2.load_json(args.movies)
+    taxonomy = embedding.load_taxonomy(args.taxonomy)
+    movies = embedding.load_json(args.movies)
     users = parse_users(args.users, args.users_json)
 
     target_movie = find_movie(movies, args.movie_id, args.movie_title)
-    movie_profile = movie_a_2.build_profile(target_movie, taxonomy, bedrock_client=None)
+    movie_profile = embedding.build_profile(target_movie, taxonomy, bedrock_client=None)
 
     user_probabilities: List[float] = []
     user_levels: List[str] = []

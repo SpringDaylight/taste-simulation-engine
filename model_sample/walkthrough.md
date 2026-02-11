@@ -607,6 +607,47 @@ python movie_a_8.py --type both --output profile.png
 
 ---
 
+---
+
+## 데이터베이스 마이그레이션
+
+**파일**: `model_sample/models.py`, `model_sample/migrate_json_to_sqlite.py`
+
+**목적**: 기존 파일(JSON) 기반 데이터 저장소를 관계형 데이터베이스(SQLite/SQLAlchemy)로 이관하여 확장성과 안정성 확보.
+
+### 주요 변경 사항
+
+- **User 모델**: 사용자 기본 정보 및 성장 스탯 (Level, Exp, Popcorn)
+- **FlavorStat 모델**: 맛별 누적 점수 (정규화된 테이블)
+- **Inventory 모델**: 테마 및 아이템 보유 현황
+- **QuestionHistory 모델**: 데일리 질문 응답 기록
+
+### 마이그레이션 및 실행 가이드
+
+**1. 라이브러리 설치** (필수)
+
+```bash
+pip install Flask-SQLAlchemy
+```
+
+**2. 데이터 이관 실행**
+
+기존 `moviemong_demo_data.json` 데이터를 DB로 옮깁니다.
+
+```bash
+python model_sample/migrate_json_to_sqlite.py
+```
+
+성공 시 `model_sample/moviemong.db` 파일이 생성됩니다.
+
+**3. 앱 실행**
+
+이제 `app_moviemong.py`를 실행하면 자동으로 DB를 사용합니다.
+
+```bash
+python app_moviemong.py
+```
+
 ## 결론
 
 ### 🎯 완료된 기능

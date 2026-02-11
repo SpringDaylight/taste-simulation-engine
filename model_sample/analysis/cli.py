@@ -1,16 +1,28 @@
-"""
+﻿"""
 리뷰몽 (Review Mong) - 영화 취향 펫 키우기 서비스
 사용자의 영화 기록 활동을 펫 육성 게임으로 변환하여 동기 부여를 제공하는 모듈 (Refactored)
 """
 
 import json
-from moviemong import MovieMong, FLAVORS
+import os
+import sys
+
+# 상위 폴더(model_sample) 및 루트 폴더를 path에 추가하여 import 문제 해결
+current_dir = os.path.dirname(os.path.abspath(__file__))
+model_sample_dir = os.path.dirname(current_dir)
+root_dir = os.path.dirname(model_sample_dir)
+sys.path.append(root_dir)
+
+try:
+    from model_sample.moviemong import MovieMong, FLAVORS
+except ImportError:
+    # 패키지 내부에서 실행될 경우
+    from ...moviemong import MovieMong, FLAVORS
 
 def main():
     print("🎬 리뷰몽(Review Mong) 시뮬레이션 시작 (Modularized)")
     
     # [Fix] Bedrock 연결을 위한 환경 변수 재설정 (AKIA 키 사용 시 세션 토큰 제거)
-    import os
     from dotenv import load_dotenv
     load_dotenv(override=True)
     if os.getenv('AWS_ACCESS_KEY_ID', '').startswith('AKIA') and 'AWS_SESSION_TOKEN' in os.environ:
@@ -61,7 +73,7 @@ def main():
             print("\n🎰 두근두근 룰렛을 돌립니다... (비용: 무료)")
             # 룰렛 돌리기
             result = mong.play_roulette()
-            print(f"🎯 결과: {result['prize']} ({result['target_angle']}도)")
+            print(f"🎯 결과: {result['prize']} ({result.get('target_angle', 0)}도)")
             print(f"💬 {result['message']}")
             
             if 'reward' in result:

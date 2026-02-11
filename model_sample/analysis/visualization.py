@@ -1,4 +1,4 @@
-"""
+﻿"""
 사용자 프로필 워드클라우드 생성기
 
 마이페이지에서 사용자가 좋아하는 영화의 태그를 워드클라우드로 시각화
@@ -69,7 +69,7 @@ def generate_tag_wordcloud(
     penalty_freq = preference.get('penalty_tag_frequency', {})
     
     print(f"\n{'='*60}")
-    print(f"🎨 {user_id} 사용자 프로필 워드클라우드 생성")
+    print(f"🎬 {user_id} 사용자 프로필 워드클라우드 생성")
     print(f"{'='*60}")
     print(f"좋아하는 태그: {len(boost_tags)}개")
     print(f"싫어하는 태그: {len(penalty_tags)}개")
@@ -79,10 +79,10 @@ def generate_tag_wordcloud(
     try:
         from wordcloud import WordCloud
     except ImportError:
-        print("❌ wordcloud 라이브러리가 설치되지 않았습니다.")
+        print("⚠️ wordcloud 라이브러리가 설치되지 않았습니다.")
         print("다음 명령어로 설치하세요: pip install wordcloud")
         
-        # 대안: 간단한 막대그래프로 표시
+        # 대신 간단한 막대그래프로 표시
         print("\n대신 막대 그래프로 표시합니다...\n")
         create_tag_bar_chart(boost_tags, penalty_tags, boost_freq, penalty_freq, tag_type, output_file)
         return
@@ -106,7 +106,7 @@ def generate_tag_wordcloud(
         plt.figure(figsize=(12, 6))
         plt.imshow(wc, interpolation='bilinear')
         plt.axis('off')
-        plt.title(f'💙 {user_id}님이 좋아하는 영화 태그', fontsize=16, pad=20)
+        plt.title(f'👍 {user_id}님이 좋아하는 영화 태그', fontsize=16, pad=20)
         
     elif tag_type == 'penalty':
         # 싫어하는 태그만
@@ -125,7 +125,7 @@ def generate_tag_wordcloud(
         plt.figure(figsize=(12, 6))
         plt.imshow(wc, interpolation='bilinear')
         plt.axis('off')
-        plt.title(f'💔 {user_id}님이 싫어하는 영화 태그', fontsize=16, pad=20)
+        plt.title(f'👎 {user_id}님이 싫어하는 영화 태그', fontsize=16, pad=20)
         
     else:  # both
         # 두 가지 모두 표시 (서브플롯)
@@ -145,7 +145,7 @@ def generate_tag_wordcloud(
         
         axes[0].imshow(wc_boost, interpolation='bilinear')
         axes[0].axis('off')
-        axes[0].set_title('💙 좋아하는 태그', fontsize=14, pad=10)
+        axes[0].set_title('👍 좋아하는 태그', fontsize=14, pad=10)
         
         # 싫어하는 태그
         penalty_freq_data = penalty_freq if penalty_freq else {tag: 1 for tag in penalty_tags}
@@ -161,7 +161,7 @@ def generate_tag_wordcloud(
         
         axes[1].imshow(wc_penalty, interpolation='bilinear')
         axes[1].axis('off')
-        axes[1].set_title('💔 싫어하는 태그', fontsize=14, pad=10)
+        axes[1].set_title('👎 싫어하는 태그', fontsize=14, pad=10)
         
         plt.suptitle(f'{user_id}님의 영화 취향 프로필', fontsize=18, y=0.98)
     
@@ -170,7 +170,7 @@ def generate_tag_wordcloud(
     # 저장 또는 표시
     if output_file:
         plt.savefig(output_file, dpi=150, bbox_inches='tight', facecolor='white')
-        print(f"✅ 워드클라우드 저장: {output_file}")
+        print(f"💾 워드클라우드 저장: {output_file}")
     else:
         plt.show()
     
@@ -196,7 +196,7 @@ def create_tag_bar_chart(
         plt.barh(range(len(tags)), freqs, color='steelblue')
         plt.yticks(range(len(tags)), tags)
         plt.xlabel('빈도', fontsize=12)
-        plt.title('💙 좋아하는 영화 태그 Top 20', fontsize=14, pad=15)
+        plt.title('👍 좋아하는 영화 태그 Top 20', fontsize=14, pad=15)
         plt.gca().invert_yaxis()
         
     elif tag_type == 'penalty':
@@ -207,7 +207,7 @@ def create_tag_bar_chart(
         plt.barh(range(len(tags)), freqs, color='indianred')
         plt.yticks(range(len(tags)), tags)
         plt.xlabel('빈도', fontsize=12)
-        plt.title('💔 싫어하는 영화 태그 Top 20', fontsize=14, pad=15)
+        plt.title('👎 싫어하는 영화 태그 Top 20', fontsize=14, pad=15)
         plt.gca().invert_yaxis()
         
     else:  # both
@@ -220,7 +220,7 @@ def create_tag_bar_chart(
         axes[0].set_yticks(range(len(boost_top)))
         axes[0].set_yticklabels(boost_top)
         axes[0].set_xlabel('빈도', fontsize=11)
-        axes[0].set_title('💙 좋아하는 태그 Top 15', fontsize=12)
+        axes[0].set_title('👍 좋아하는 태그 Top 15', fontsize=12)
         axes[0].invert_yaxis()
         
         # 싫어하는 태그
@@ -230,7 +230,7 @@ def create_tag_bar_chart(
         axes[1].set_yticks(range(len(penalty_top)))
         axes[1].set_yticklabels(penalty_top)
         axes[1].set_xlabel('빈도', fontsize=11)
-        axes[1].set_title('💔 싫어하는 태그 Top 15', fontsize=12)
+        axes[1].set_title('👎 싫어하는 태그 Top 15', fontsize=12)
         axes[1].invert_yaxis()
         
         plt.suptitle('영화 취향 프로필', fontsize=16, y=0.98)
@@ -239,7 +239,7 @@ def create_tag_bar_chart(
     
     if output_file:
         plt.savefig(output_file, dpi=150, bbox_inches='tight', facecolor='white')
-        print(f"✅ 그래프 저장: {output_file}")
+        print(f"💾 그래프 저장: {output_file}")
     else:
         plt.show()
     
@@ -252,7 +252,7 @@ def main():
     parser.add_argument('--preference-file', default='user_preferences.json', help='선호도 파일')
     parser.add_argument('--output', default=None, help='출력 이미지 파일명 (예: profile_wordcloud.png)')
     parser.add_argument('--type', choices=['boost', 'penalty', 'both'], default='both',
-                        help='표시할 태그 종류: boost (좋아하는), penalty (싫어하는), both (둘 다)')
+                        help='표시할 태그 종류: boost (좋아하는), penalty (싫어하는), both (둘다)')
     
     args = parser.parse_args()
     

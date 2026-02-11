@@ -1,21 +1,21 @@
-## A-4 설명 가능한 취향 추천 (LLM)
+﻿## A-4 설명 가능한 취향 추천 (LLM)
 
 import argparse
 import json
 from typing import Dict, List, Tuple
 
-import movie_a_2
+from . import embedding
 
 
 # 주요 기여 요소 추출
-# 사용자 프로필과 영화 프로필을 비교하여 매칭에 가장 큰 영향을 준 요소 찾기
+# 사용자 프로필과 영화 프로필을 비교하여 매칭에 가장 영향을 준 요소 찾기
 def find_top_contributors(
     user_profile: Dict,
     movie_profile: Dict,
     top_n: int = 3
 ) -> List[Tuple[str, str, float]]:
     """
-    사용자-영화 매칭에서 가장 큰 기여를 한 정서 태그 찾기
+    사용자/영화 매칭에서 가장 큰 기여를 한 정서 태그 찾기
     
     Args:
         user_profile: 사용자 취향 프로필
@@ -24,7 +24,7 @@ def find_top_contributors(
     
     Returns:
         [(category, tag, contribution_score), ...]
-        예: [('emotion', '감동적이에요', 0.85), ('story_flow', '반전이 있어요', 0.72)]
+        예: [('emotion', '감동적이에요', 0.85), ('story_flow', '반전이 많아요', 0.72)]
     """
     contributors = []
     
@@ -53,12 +53,12 @@ def find_top_contributors(
         if contribution > 0.1:
             contributors.append(('ending', tag, contribution))
     
-    # 기여도 순으로 정렬하여 상위 N개 반환
+    # 기여도 역순으로 정렬하여 상위 N개 반환
     contributors.sort(key=lambda x: x[2], reverse=True)
     return contributors[:top_n]
 
 
-# 설명 생성 (더미 LLM)
+# 설명 생성 (더미/LLM)
 def generate_explanation(
     movie_title: str,
     match_rate: float,
@@ -79,7 +79,7 @@ def generate_explanation(
     """
     if use_llm:
         # 향후 LLM API 연동
-        # prompt = f"다음 영화를 추천합니다: {movie_title}, 매칭률: {match_rate}%..."
+        # prompt = f"다음 영화를 추천합니다: {movie_title}, 매칭률 {match_rate}%..."
         # explanation = call_llm_api(prompt)
         pass
     
@@ -87,18 +87,18 @@ def generate_explanation(
     reasons = []
     for category, tag, score in contributors:
         if category == 'emotion':
-            reasons.append(f"이 영화는 '{tag}' 감성이 강해서")
+            reasons.append(f"이 영화는 '{tag}' 감성이 강해요")
         elif category == 'story_flow':
-            reasons.append(f"'{tag}' 서사 구조가 있어서")
+            reasons.append(f"'{tag}' 서사 구조가 있어요")
         elif category == 'ending':
-            reasons.append(f"'{tag}' 결말을 가지고 있어서")
+            reasons.append(f"'{tag}' 결말을 가지고 있어요")
     
     if not reasons:
-        reasons.append("다양한 정서적 요소가 잘 맞아서")
+        reasons.append("다양한 정서적 요소가 잘 맞아요")
     
-    explanation_text = f"'{movie_title}'를 추천합니다 (매칭률: {match_rate:.1f}%). "
+    explanation_text = f"'{movie_title}'를 추천합니다 (매칭률 {match_rate:.1f}%). "
     explanation_text += ", ".join(reasons[:3])
-    explanation_text += " 귀하의 취향과 잘 맞을 것으로 예상됩니다."
+    explanation_text += " 그 외의 취향과 잘 맞을 것으로 예상합니다."
     
     return {
         'movie_title': movie_title,
@@ -108,7 +108,7 @@ def generate_explanation(
             {'category': cat, 'tag': tag, 'score': round(score, 3)}
             for cat, tag, score in contributors
         ],
-        'disclaimer': '이 추천은 정서 태그 기반 확률적 분석이며, 개인의 주관적 취향과 다를 수 있습니다.'
+        'disclaimer': '※ 추천은 정서 태그 기반 확률적 분석이며, 개인의 주관적 취향과 다를 수 있습니다.'
     }
 
 
@@ -120,7 +120,7 @@ def generate_explanation_with_llm(
     user_text: str
 ) -> str:
     """
-    실제 LLM을 사용한 자연스러운 설명 생성
+    실제 LLM을 사용하여 자연스러운 설명 생성
     
     향후 구현:
     1. 프롬프트 구성
@@ -152,7 +152,7 @@ def generate_explanation_with_llm(
     # response = llm_api.generate(prompt)
     # return response.text
     
-    return "[LLM 미구현 - 향후 추가 예정]"
+    return "[LLM 미구현 - 추후 추가 예정]"
 
 
 # CLI 메인 함수
@@ -167,8 +167,8 @@ def main():
     args = parser.parse_args()
     
     # 데이터 로드
-    taxonomy = movie_a_2.load_taxonomy(args.taxonomy)
-    movies = movie_a_2.load_json(args.movies)
+    taxonomy = embedding.load_taxonomy(args.taxonomy)
+    movies = embedding.load_json(args.movies)
     
     # 특정 영화 찾기
     target_movie = None
@@ -186,20 +186,20 @@ def main():
     n_keys = taxonomy['story_flow']['tags']
     
     user_profile = {
-        'emotion_scores': movie_a_2.score_tags(args.user_text, e_keys),
-        'narrative_traits': movie_a_2.score_tags(args.user_text, n_keys),
+        'emotion_scores': embedding.score_tags(args.user_text, e_keys),
+        'narrative_traits': embedding.score_tags(args.user_text, n_keys),
         'ending_preference': {
-            'happy': movie_a_2.stable_score(args.user_text, 'ending_happy'),
-            'open': movie_a_2.stable_score(args.user_text, 'ending_open'),
-            'bittersweet': movie_a_2.stable_score(args.user_text, 'ending_bittersweet'),
+            'happy': embedding.stable_score(args.user_text, 'ending_happy'),
+            'open': embedding.stable_score(args.user_text, 'ending_open'),
+            'bittersweet': embedding.stable_score(args.user_text, 'ending_bittersweet'),
         },
     }
     
     # 영화 프로필 생성
-    movie_profile = movie_a_2.build_profile(target_movie, taxonomy)
+    movie_profile = embedding.build_profile(target_movie, taxonomy)
     
     # 매칭률 계산 (간단한 코사인 유사도)
-    from movie_a_3 import cosine_sim, align_vector
+    from .similarity import cosine_sim, align_vector
     
     e_sim = cosine_sim(
         align_vector(user_profile['emotion_scores'], e_keys),

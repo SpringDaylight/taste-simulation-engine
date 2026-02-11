@@ -8,17 +8,29 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), 'model_sample'))
 
 from moviemong import MovieMong
+from database import db, init_db
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
 
+# DB 설정
+db_path = os.path.join(os.path.dirname(__file__), 'data', 'moviemong.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# DB 초기화
+init_db(app)
+
 # User ID (데모용 고정)
 USER_ID = "user_demo"
-mong = MovieMong(USER_ID, data_file="moviemong_demo_data.json")
+# data_file 인자 제거
+with app.app_context():
+    mong = MovieMong(USER_ID)
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/api/home', methods=['GET'])
 def get_home():

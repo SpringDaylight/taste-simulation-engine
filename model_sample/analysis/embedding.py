@@ -19,7 +19,11 @@ def load_json(path: str):
         return json.load(f)
 
 # 정서 태그 taxonomy(템플릿) 생성 - LLM으로 정서 태그 추출 시 사용
-def load_taxonomy(path: str = 'emotion_tag.json'):
+def load_taxonomy(path: str = None):
+    if path is None:
+        # 기본 경로: .../data/emotion_tag.json
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        path = os.path.join(base_dir, 'data', 'emotion_tag.json')
     return load_json(path)
 
 # 정서 태그 값으로 더미 값 입력(fallback 용도로 유지)

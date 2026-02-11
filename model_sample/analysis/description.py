@@ -1,5 +1,5 @@
-"""
-A-5: LLM 기반 확률 근거 문구 생성
+﻿"""
+A-5: LLM 기반 추천 근거 문구 생성
 
 A-3에서 계산된 만족 확률 결과를 받아서
 자연어로 "왜 이 영화가 당신에게 맞는지" 설명을 생성합니다.
@@ -126,16 +126,16 @@ def _build_explanation_prompt(
     if user_disliked_tags and len(user_disliked_tags) > 0:
         disliked_str = f"싫어하는 태그: {', '.join(user_disliked_tags[:5])}"
     
-    # 30% 이하일 때는 퍼센트를 언급하지 않음
+    # 30% 이하는 퍼센트를 언급하지 않음
     if prob <= 30:
         prompt = f"""다음 정보를 바탕으로 왜 이 영화가 사용자의 취향과 맞지 않는지 2-3줄로 친근하게 설명해주세요.
 
 영화: "{movie_title}"
 
 주요 불일치 요소: {", ".join(top_factors)}
-- 감정 유사도: {emotion_sim:.0f}%
-- 서사 유사도: {narrative_sim:.0f}%
-- 결말 유사도: {ending_sim:.0f}%
+- 감정 유사사: {emotion_sim:.0f}%
+- 서사 유사사: {narrative_sim:.0f}%
+- 결말 유사사: {ending_sim:.0f}%
 
 {liked_str}
 {disliked_str}
@@ -149,17 +149,17 @@ def _build_explanation_prompt(
 3. 주요 불일치 이유를 설명
 4. 2-3줄로 간결하게
 
-설명만 출력하고 다른 텍스트는 포함하지 마세요."""
+설명만 출력하고 다른 텍스트는 포함하지 마세요"""
     else:
-        prompt = f"""다음 정보를 바탕으로 왜 이 영화가 사용자에게 {prob:.0f}% 적합한지 2-3줄로 친근하게 설명해주세요.
+        prompt = f"""다음 정보를 바탕으로 왜 이 영화가 사용자에게 {prob:.0f}% 부합하는지 2-3줄로 친근하게 설명해주세요.
 
 영화: "{movie_title}"
 만족 확률: {prob:.0f}%
 
 주요 일치 요소: {", ".join(top_factors)}
-- 감정 유사도: {emotion_sim:.0f}%
-- 서사 유사도: {narrative_sim:.0f}%
-- 결말 유사도: {ending_sim:.0f}%
+- 감정 유사사: {emotion_sim:.0f}%
+- 서사 유사사: {narrative_sim:.0f}%
+- 결말 유사사: {ending_sim:.0f}%
 
 {liked_str}
 {disliked_str}
@@ -173,7 +173,7 @@ def _build_explanation_prompt(
 3. 주요 일치 요소를 언급
 4. 2-3줄로 간결하게
 
-설명만 출력하고 다른 텍스트는 포함하지 마세요."""
+설명만 출력하고 다른 텍스트는 포함하지 마세요"""
 
     return prompt
 
@@ -189,9 +189,9 @@ def _generate_fallback_explanation(
     breakdown = prediction_result.get("breakdown", {})
     top_factors = breakdown.get("top_factors", ["취향 요소"])
     
-    explanation = f'"{movie_title}"는 당신의 취향과 {prob:.0f}% 일치합니다. '
+    explanation = f'"{movie_title}"은 당신의 취향과 {prob:.0f}% 일치합니다. '
     explanation += f'특히 {", ".join(top_factors)}가 잘 맞습니다. '
-    explanation += '이 예측은 확률 기반이므로 개인차가 있을 수 있습니다.'
+    explanation += '이 예측은 정서 특성 기반이므로 개인차게 있을 수 있습니다.'
     
     return explanation
 
@@ -201,7 +201,7 @@ if __name__ == '__main__':
     import argparse
     
     parser = argparse.ArgumentParser(description='A-5 설명 생성 테스트')
-    parser.add_argument('--movie-title', default='쇼생크 탈출')
+    parser.add_argument('--movie-title', default='인생은 아름다워')
     parser.add_argument('--prob', type=float, default=0.87)
     
     args = parser.parse_args()
@@ -225,7 +225,7 @@ if __name__ == '__main__':
     explanation = generate_explanation(
         test_result,
         args.movie_title,
-        user_liked_tags=["따뜻해요", "여운이 길어요", "잔잔해요"],
+        user_liked_tags=["따뜻해요", "여운이 길어요", "웅장해요"],
         user_disliked_tags=["무서워요", "긴장돼요"],
         bedrock_client=bedrock_client
     )
@@ -234,4 +234,4 @@ if __name__ == '__main__':
     print(f"영화: {args.movie_title}")
     print(f"만족 확률: {test_result['probability']:.1%}")
     print("="*60)
-    print(f"\n📝 설명:\n{explanation}\n")
+    print(f"\nAI 설명:\n{explanation}\n")
