@@ -17,9 +17,9 @@ Pipeline Flow:
 import logging
 from typing import Optional
 
-from cocktail.models import CocktailOutput, TasteInput
-from cocktail.validators import TasteInputValidator
-from cocktail.analyzers import (
+from .models import CocktailOutput, TasteInput
+from .validators import TasteInputValidator
+from .analyzers import (
     TasteAnalyzer,
     TopNSelector,
     CocktailImageGenerator,
@@ -194,7 +194,7 @@ class EmotionCocktailGenerator:
         
         Requirements: 1.4, 8.1
         """
-        from cocktail.models import TasteInfo, GradientInfo, LLMComment
+        from .models import TasteInfo, GradientInfo, LLMComment
         
         logger.info("기본 칵테일 생성 중...")
         

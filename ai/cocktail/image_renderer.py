@@ -7,7 +7,7 @@ Cocktail Image Renderer
 from PIL import Image, ImageDraw
 import os
 import numpy as np
-from cocktail.models import GradientInfo
+from .models import GradientInfo
 
 
 class CocktailImageRenderer:

@@ -3,8 +3,8 @@ from typing import Optional, Dict
 from database import db
 from models import FlavorStat
 from .core import FLAVORS
-from analysis import sentiment
-from analysis import embedding
+from ai.analysis import sentiment
+from ai.analysis import embedding
 
 class ReviewMixin:
     

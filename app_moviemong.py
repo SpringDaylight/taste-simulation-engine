@@ -4,10 +4,10 @@ from flask_cors import CORS
 import os
 import sys
 
-# moviemong 패키지 경로 추가
-sys.path.append(os.path.join(os.path.dirname(__file__), 'model_sample'))
+# moviemong 패키지 경로 추가 (Deprecated in integration)
+# sys.path.append(os.path.join(os.path.dirname(__file__), 'model_sample'))
 
-from moviemong import MovieMong
+from ai.gamification import MovieMong
 from database import db, init_db
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
@@ -27,8 +27,8 @@ USER_ID = "user_demo"
 mong = MovieMong(USER_ID)
 
 # --- Cocktail Feature Integration ---
-from cocktail.emotion_cocktail_generator import EmotionCocktailGenerator
-from cocktail.image_renderer import CocktailImageRenderer
+from ai.cocktail.emotion_cocktail_generator import EmotionCocktailGenerator
+from ai.cocktail.image_renderer import CocktailImageRenderer
 import re
 
 # Initialize Cocktail Components

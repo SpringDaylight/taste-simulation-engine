@@ -9,7 +9,7 @@ from .question import DailyQuestionMixin
 from .review import ReviewMixin
 from .feeding import FeedingMixin
 from .theme import ThemeMixin
-from analysis import embedding
+from ai.analysis import embedding
 
 class MovieMong(MovieMongCore, DailyQuestionMixin, ReviewMixin, FeedingMixin, ThemeMixin):
     """

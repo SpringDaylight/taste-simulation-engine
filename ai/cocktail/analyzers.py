@@ -4,7 +4,7 @@ Taste analysis components for Emotion Cocktail Generator
 맛 비율 계산 및 감정-색상 매핑을 담당하는 컴포넌트들을 포함합니다.
 """
 
-from cocktail.models import TasteInput, TasteInfo
+from .models import TasteInput, TasteInfo
 
 
 class TasteAnalyzer:
@@ -177,7 +177,7 @@ class CocktailImageGenerator:
         Returns:
             GradientInfo: 그라데이션 정보 (색상, 스톱 위치)
         """
-        from cocktail.models import GradientInfo
+        from .models import GradientInfo
         
         # 색상 리스트 추출
         colors = [taste.hex_color for taste in top_n_tastes]
@@ -535,7 +535,7 @@ class CocktailOutputAssembler:
         Returns:
             CocktailOutput: 모든 정보를 포함하는 최종 출력 객체
         """
-        from cocktail.models import CocktailOutput
+        from .models import CocktailOutput
         
         # 모든 필드를 포함하는 CocktailOutput 생성
         return CocktailOutput(

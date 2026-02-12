@@ -14,10 +14,10 @@ root_dir = os.path.dirname(model_sample_dir)
 sys.path.append(root_dir)
 
 try:
-    from model_sample.moviemong import MovieMong, FLAVORS
+    from ai.gamification import MovieMong, FLAVORS
 except ImportError:
     # 패키지 내부에서 실행될 경우
-    from ...moviemong import MovieMong, FLAVORS
+    from ..gamification import MovieMong, FLAVORS
 
 def main():
     print("🎬 리뷰몽(Review Mong) 시뮬레이션 시작 (Modularized)")
