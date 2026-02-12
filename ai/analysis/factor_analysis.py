@@ -149,10 +149,11 @@ def generate_explanation_with_llm(
     """
     
     # TODO: LLM API 호출
+    # Note: 실제 LLM 기반 설명 생성은 ai/analysis/description.py 에 구현되어 있습니다.
     # response = llm_api.generate(prompt)
     # return response.text
     
-    return "[LLM 미구현 - 추후 추가 예정]"
+    return "[LLM 미구현 - ai/analysis/description.py 를 사용하세요]"
 
 
 # CLI 메인 함수

@@ -2,10 +2,6 @@
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 import os
-import sys
-
-# moviemong 패키지 경로 추가 (Deprecated in integration)
-# sys.path.append(os.path.join(os.path.dirname(__file__), 'model_sample'))
 
 from ai.gamification import MovieMong
 from database import db, init_db
@@ -29,6 +25,7 @@ mong = MovieMong(USER_ID)
 # --- Cocktail Feature Integration ---
 from ai.cocktail.emotion_cocktail_generator import EmotionCocktailGenerator
 from ai.cocktail.image_renderer import CocktailImageRenderer
+from ai.analysis import embedding, group_recommendation
 import re
 
 # Initialize Cocktail Components
@@ -52,6 +49,17 @@ FLAVOR_KEY_MAP = {
     "sweet": "sweet", "spicy": "spicy", "onion": "onion",
     "cheese": "cheese", "dark": "dark", "salty": "salty", "mint": "mint",
 }
+
+# --- Group Recommendation Data Loading ---
+try:
+    TAXONOMY = embedding.load_taxonomy()
+    _movies_path = os.path.join(os.path.dirname(__file__), 'data', 'movies_dataset_final.json')
+    GROUPED_MOVIES = embedding.load_json(_movies_path)
+    print(f"Loaded {len(GROUPED_MOVIES)} movies for Group Recommendation.")
+except Exception as e:
+    print(f"Warning: Group Recommendation data load failed: {e}")
+    TAXONOMY = {}
+    GROUPED_MOVIES = []
 
 def _safe_slug(value: str, max_length: int = 20) -> str:
     candidate = (value or "").strip().replace(" ", "_")
@@ -187,6 +195,46 @@ def api_inventory():
         "flavor_stats": user_data["flavor_stats"],
         "owned_themes": user_data.get("owned_themes", ["basic"])
     })
+
+@app.route('/api/group/recommend', methods=['POST'])
+def api_group_recommend():
+    """
+    그룹 영화 만족도 분석 API
+    Input:
+    {
+        "users": [
+            {"name": "A", "text": "...", "likes": [], "dislikes": []},
+            ...
+        ],
+        "target_movie_id": 12345 (Optional),
+        "target_movie_title": "Inception" (Optional)
+    }
+    """
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"success": False, "error": "No JSON data provided"}), 400
+
+        users = data.get('users', [])
+        target_id = data.get('target_movie_id')
+        target_title = data.get('target_movie_title')
+
+        # Run Analysis
+        result = group_recommendation.analyze_group_satisfaction(
+            movies=GROUPED_MOVIES,
+            taxonomy=TAXONOMY,
+            users=users,
+            target_movie_id=target_id,
+            target_movie_title=target_title
+        )
+        
+        return jsonify({
+            "success": True,
+            "data": result
+        })
+    except Exception as e:
+        print(f"Group Recommendation Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
     # 템플릿 폴더 생성 확인

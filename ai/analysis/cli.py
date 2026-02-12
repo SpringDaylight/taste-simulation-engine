@@ -7,10 +7,10 @@ import json
 import os
 import sys
 
-# 상위 폴더(model_sample) 및 루트 폴더를 path에 추가하여 import 문제 해결
+# 상위 폴더(ai) 및 루트 폴더를 path에 추가하여 import 문제 해결
 current_dir = os.path.dirname(os.path.abspath(__file__))
-model_sample_dir = os.path.dirname(current_dir)
-root_dir = os.path.dirname(model_sample_dir)
+ai_package_dir = os.path.dirname(current_dir)
+root_dir = os.path.dirname(ai_package_dir)
 sys.path.append(root_dir)
 
 try:

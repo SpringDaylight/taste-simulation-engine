@@ -9,3 +9,5 @@ scikit-learn
 openai
 anthropic
 requests
+matplotlib
+wordcloud

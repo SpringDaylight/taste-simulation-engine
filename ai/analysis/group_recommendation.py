@@ -107,6 +107,55 @@ def to_satisfaction_level(probability: float) -> str:
     return "매우 불만"
 
 
+
+def analyze_group_satisfaction(
+    movies: List[Dict[str, Any]],
+    taxonomy: Dict[str, Any],
+    users: List[Dict[str, Any]],
+    target_movie_id: Optional[str] = None,
+    target_movie_title: Optional[str] = None,
+    penalty_weight: float = 0.7,
+    boost_weight: float = 0.5,
+) -> Dict[str, Any]:
+    """
+    그룹의 영화 만족도를 분석합니다.
+    """
+    target_movie = find_movie(movies, target_movie_id, target_movie_title)
+    movie_profile = embedding.build_profile(target_movie, taxonomy, bedrock_client=None)
+
+    user_results: List[Dict[str, Any]] = []
+    user_probabilities: List[float] = []
+
+    for user in users:
+        user_profile = build_user_profile(user["text"], taxonomy)
+        result = calculate_satisfaction_probability(
+            user_profile=user_profile,
+            movie_profile=movie_profile,
+            dislikes=user.get("dislikes", []),
+            boost_tags=user.get("likes", []),
+            penalty_weight=penalty_weight,
+            boost_weight=boost_weight,
+        )
+
+        prob = float(result["probability"])
+        user_probabilities.append(prob)
+        user_results.append({
+            "name": user["name"],
+            "probability": prob,
+            "level": to_satisfaction_level(prob)
+        })
+
+    group_prob = sum(user_probabilities) / len(user_probabilities) if user_probabilities else 0.0
+
+    return {
+        "movie_title": target_movie.get("title"),
+        "group_probability": group_prob,
+        "group_satisfaction_level": to_satisfaction_level(group_prob),
+        "style_text": build_movie_style_text(movie_profile),
+        "user_details": user_results
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="A-6 Group Movie Satisfaction (그룹 영화 만족도)")
     parser.add_argument("--movies", default="movies_dataset_final.json")
@@ -123,33 +172,25 @@ def main() -> None:
     movies = embedding.load_json(args.movies)
     users = parse_users(args.users, args.users_json)
 
-    target_movie = find_movie(movies, args.movie_id, args.movie_title)
-    movie_profile = embedding.build_profile(target_movie, taxonomy, bedrock_client=None)
-
-    user_probabilities: List[float] = []
-    user_levels: List[str] = []
-
-    for user in users:
-        user_profile = build_user_profile(user["text"], taxonomy)
-        result = calculate_satisfaction_probability(
-            user_profile=user_profile,
-            movie_profile=movie_profile,
-            dislikes=user["dislikes"],
-            boost_tags=user["likes"],
+    try:
+        result = analyze_group_satisfaction(
+            movies=movies,
+            taxonomy=taxonomy,
+            users=users,
+            target_movie_id=args.movie_id,
+            target_movie_title=args.movie_title,
             penalty_weight=args.penalty_weight,
-            boost_weight=args.boost_weight,
+            boost_weight=args.boost_weight
         )
 
-        prob = float(result["probability"])
-        user_probabilities.append(prob)
-        user_levels.append(f"{user['name']} 사용자: {to_satisfaction_level(prob)}")
+        print(f"그룹 만족 확률: {result['group_probability'] * 100:.0f}%")
+        print(result['style_text'])
+        for user_res in result['user_details']:
+            print(f"{user_res['name']} 사용자: {user_res['level']}")
 
-    group_prob = sum(user_probabilities) / len(user_probabilities)
+    except ValueError as e:
+        print(f"Error: {e}")
 
-    print(f"그룹 만족 확률: {group_prob * 100:.0f}%")
-    print(build_movie_style_text(movie_profile))
-    for line in user_levels:
-        print(line)
 
 
 if __name__ == "__main__":
