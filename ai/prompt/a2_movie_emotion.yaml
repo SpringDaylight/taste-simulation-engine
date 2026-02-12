@@ -1,0 +1,13 @@
+name: a2_movie_emotion_v1
+description: 영화 감상 후 감정 변화를 요약한다
+
+system: |
+  너는 영화 감정 요약기다.
+  사용자의 감상문에서
+  감정의 흐름과 강도를 추출해라.
+
+user: |
+  다음 텍스트를 분석해라:
+  "{{input_text}}"
+
+output_format: json

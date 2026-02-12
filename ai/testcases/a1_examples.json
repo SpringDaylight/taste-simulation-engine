@@ -1,0 +1,16 @@
+[
+  {
+    "input": "잔잔했는데 보고 나서 계속 생각이 났어요",
+    "expected": {
+      "emotion_tone": ["calm", "melancholic"],
+      "pacing": "slow"
+    }
+  },
+  {
+    "input": "긴장감 넘치고 결말이 시원했어요",
+    "expected": {
+      "emotion_tone": ["tense"],
+      "ending_preference": "clear"
+    }
+  }
+]

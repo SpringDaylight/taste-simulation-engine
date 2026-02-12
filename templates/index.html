@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Mong</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+        body {
+            font-family: 'Jua', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        header {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .section {
+            padding: 20px;
+            display: none;
+            /* JS로 제어 */
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Home Styles */
+        .character-area {
+            text-align: center;
+            margin: 20px 0;
+            background: #fff0f0;
+            border-radius: 20px;
+            padding: 30px;
+        }
+
+        .character-img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .stats-bar {
+            background: #eee;
+            border-radius: 10px;
+            height: 20px;
+            width: 80%;
+            margin: 10px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .exp-fill {
+            background: #4ecdc4;
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .popcorn-badge {
+            display: inline-block;
+            background: #ffe66d;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #d35400;
+            margin-top: 10px;
+        }
+
+        /* Question Styles */
+        .question-card,
+        .history-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .history-card {
+            background: #f9f9f9;
+            font-size: 0.9em;
+        }
+
+        .history-date {
+            color: #888;
+            font-size: 0.8em;
+            margin-bottom: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 80px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        /* Banner Styles */
+        .banner {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 1.1em;
+            font-family: 'Jua', sans-serif;
+            cursor: pointer;
+            text-align: left;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .banner:after {
+            content: '>';
+            position: absolute;
+            right: 20px;
+        }
+
+        .banner.feeding {
+            background: linear-gradient(45deg, #ff9f43, #ff6b6b);
+        }
+
+        .banner.shop {
+            background: linear-gradient(45deg, #a55eea, #45aaf2);
+        }
+
+        .banner.inventory {
+            background: linear-gradient(45deg, #2bcbba, #26de81);
+        }
+
+        /* Feeding (Roulette) */
+        .roulette-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            border-radius: 50%;
+            border: 10px solid #333;
+            overflow: hidden;
+            background: conic-gradient(#ff6b6b 0deg 36deg,
+                    /* 팝콘 */
+                    #feca57 36deg 72deg,
+                    /* 팝콘 */
+                    #ff9f43 72deg 108deg,
+                    /* 핫도그 */
+                    #ff6b6b 108deg 144deg,
+                    /* 팝콘 */
+                    #54a0ff 144deg 180deg,
+                    /* 콤보 */
+                    #ff6b6b 180deg 216deg,
+                    /* 팝콘 */
+                    #5f27cd 216deg 252deg,
+                    /* 오징어 */
+                    #ff6b6b 252deg 288deg,
+                    /* 팝콘 */
+                    #ee5253 288deg 324deg,
+                    /* 치킨 */
+                    #ff6b6b 324deg 360deg
+                    /* 팝콘 */
+                );
+            transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #333;
+            z-index: 10;
+        }
+
+        /* Shop Items */
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-buy {
+            background: #4ecdc4;
+            color: white;
+        }
+
+        .btn-apply {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-owned {
+            background: #ccc;
+            cursor: default;
+        }
+
+        .btn-disabled {
+            background: #eee;
+            color: #aaa;
+            cursor: not-allowed;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+        }
+
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <header id="header-title">My Review Mong</header>
+
+        <!-- HOME SECTION -->
+        <div id="home-section" class="section active">
+            <div class="character-area">
+                <h2 id="stage-name">알 (Egg)</h2>
+                <img id="char-img" src="" alt="Character" class="character-img"
+                    onerror="this.src='https://via.placeholder.com/200?text=Egg'">
+                <div>Lv.<span id="level">1</span> <span id="flavor-name">오리지널</span></div>
+
+                <div class="stats-bar">
+                    <div class="exp-fill" id="exp-bar" style="width: 0%"></div>
+                </div>
+                <div style="font-size: 0.8em; color: #666;">
+                    EXP <span id="exp-val">0</span> / <span id="next-exp">50</span>
+                </div>
+
+                <div class="popcorn-badge">
+                    🍿 <span id="popcorn-count">0</span>
+                </div>
+            </div>
+
+            <!-- Today's Question -->
+            <div class="question-card" id="today-q-card">
+                <h3>📅 오늘의 질문</h3>
+                <p id="today-q-text">질문을 불러오는 중...</p>
+                <div id="answer-area">
+                    <textarea id="answer-input" placeholder="답변을 입력하면 팝콘을 드려요!"></textarea>
+                    <button class="btn btn-buy" style="width:100%" onclick="submitAnswer()">답변하기</button>
+                </div>
+                <div id="today-q-done" style="display:none; color:#4ecdc4; font-weight:bold; text-align:center;">
+                    ✅ 오늘의 답변 완료!
+                </div>
+            </div>
+
+            <!-- History List (Home에 바로 보여줌) -->
+            <h3>📜 지난 대화</h3>
+            <div id="history-list">
+                <!-- JS로 로드됨 -->
+                <div class="history-card" style="text-align:center; color:#888;">기록이 없습니다.</div>
+            </div>
+
+        </div>
+
+        <!-- FEEDING SECTION -->
+        <div id="feeding-section" class="section">
+            <h2 style="text-align:center">🍿 룰렛 밥주기</h2>
+            <p style="text-align:center; color:#666;">룰렛을 돌려 간식을 주세요! (무료)</p>
+
+            <div class="roulette-container" id="roulette-wheel">
+                <!-- CSS Conic Gradient handles segments -->
+            </div>
+            <div class="pointer"></div>
+
+            <div style="text-align:center; margin-top:20px;">
+                <button class="btn btn-buy" style="font-size:1.2em; padding: 15px 40px;"
+                    onclick="spinRoulette()">돌리기!</button>
+            </div>
+            <div id="feeding-result"
+                style="text-align:center; margin-top:20px; font-weight:bold; font-size:1.2em; color:#ff6b6b;"></div>
+        </div>
+
+        <!-- SHOP SECTION -->
+        <div id="shop-section" class="section">
+            <h2 style="text-align:center">🛍️ 테마 상점</h2>
+            <div style="text-align:right; margin-bottom:10px;">
+                보유 🍿: <span id="shop-popcorn">0</span>
+            </div>
+            <div id="shop-list">
+                <!-- JS로 로드됨 -->
+            </div>
+        </div>
+
+        <!-- INVENTORY SECTION -->
+        <div id="inventory-section" class="section">
+            <h2 style="text-align:center">🎒 인벤토리</h2>
+            <div class="question-card">
+                <h3>내 팝콘 맛 분포</h3>
+                <ul id="flavor-stats-list" style="list-style:none; padding:0;">
+                    <!-- JS 로드 -->
+                </ul>
+            </div>
+            <div class="question-card">
+                <h3>보유 테마</h3>
+                <div id="owned-themes-list"></div>
+            </div>
+        </div>
+
+        <!-- Navigation Bar (Banners replacement for persistent nav) -->
+        <div class="nav-bar">
+            <div class="nav-item" onclick="showSection('home')">🏠 홈</div>
+            <div class="nav-item" onclick="showSection('feeding')">🍖 밥주기</div>
+            <div class="nav-item" onclick="showSection('shop')">🛍️ 상점</div>
+            <div class="nav-item" onclick="showSection('inventory')">🎒 가방</div>
+        </div>
+
+    </div>
+
+    <script>
+        // 전역 상태
+        let currentPopcorn = 0;
+
+        // 초기 로드
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHomeData();
+            loadHistory();
+        });
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.getElementById(sectionId + '-section').classList.add('active');
+
+            // 섹션별 데이터 리로드
+            if (sectionId === 'home') { loadHomeData(); loadHistory(); }
+            if (sectionId === 'shop') loadShopData();
+            if (sectionId === 'inventory') loadInventoryData();
+
+            // 헤더 변경
+            const titles = {
+                'home': 'My Review Mong',
+                'feeding': '냠냠 밥주기',
+                'shop': '테마 상점',
+                'inventory': '내 인벤토리'
+            };
+            document.getElementById('header-title').innerText = titles[sectionId];
+        }
+
+        async function loadHomeData() {
+            try {
+                const res = await fetch('/api/home');
+                const data = await res.json();
+
+                // 캐릭터 정보 업데이트
+                const char = data.character;
+                document.getElementById('stage-name').innerText = `${char.stage} (${char.flavor_name})`;
+                document.getElementById('level').innerText = char.level;
+                document.getElementById('exp-val').innerText = char.exp;
+                document.getElementById('next-exp').innerText = char.next_level_exp;
+                document.getElementById('popcorn-count').innerText = data.currency.popcorn;
+                currentPopcorn = data.currency.popcorn; // 전역 저장
+
+                // 이미지 (assets 폴더 구조 가정, 또는 static)
+                // 백엔드가 '리뷰몽_1차.png' 등을 리턴함. -> static/images/...? 
+                // 현재 구조상 Flask static 폴더 루트에 이미지가 있다면 url_for 필요 혹은 그냥 /static/파일명
+                // 임시로 같은 경로에 있다고 가정하고 처리 (Flask 기본 static 폴더 내)
+                document.getElementById('char-img').src = "/static/" + char.image_path;
+
+                // EXP Bar
+                if (char.next_level_exp !== "MAX") {
+                    const pct = (char.exp / char.next_level_exp) * 100;
+                    document.getElementById('exp-bar').style.width = `${pct}%`;
+                } else {
+                    document.getElementById('exp-bar').style.width = '100%';
+                }
+
+                // 질문 상태
+                if (data.daily_status.today_question) {
+                    document.getElementById('today-q-text').innerText = data.daily_status.today_question;
+                    if (data.daily_status.can_answer_question) {
+                        document.getElementById('answer-area').style.display = 'block';
+                        document.getElementById('today-q-done').style.display = 'none';
+                    } else {
+                        document.getElementById('answer-area').style.display = 'none';
+                        document.getElementById('today-q-done').style.display = 'block';
+                    }
+                } else {
+                    document.getElementById('today-q-text').innerText = "오늘의 질문 준비 중...";
+                    document.getElementById('answer-area').style.display = 'none';
+                }
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const list = await res.json();
+
+                const container = document.getElementById('history-list');
+                container.innerHTML = '';
+
+                if (list.length === 0) {
+                    container.innerHTML = '<div class="history-card" style="text-align:center; color:#888;">기록이 없습니다.</div>';
+                    return;
+                }
+
+                // 최신순 정렬
+                list.reverse().forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'history-card';
+                    card.innerHTML = `
+                    <div class="history-date">${item.date}</div>
+                    <div style="font-weight:bold; margin-bottom:5px;">Q. ${item.question}</div>
+                    <div>A. ${item.answer}</div>
+                `;
+                    container.appendChild(card);
+                });
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function submitAnswer() {
+            const text = document.getElementById('answer-input').value;
+            if (!text) return alert("내용을 입력해주세요!");
+
+            try {
+                const res = await fetch('/api/question/answer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ answer: text })
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    loadHomeData(); // 갱신
+                    loadHistory(); // 히스토리 갱신
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // 룰렛 로직
+        let isSpinning = false;
+        async function spinRoulette() {
+            if (isSpinning) return;
+            isSpinning = true;
+            document.getElementById('feeding-result').innerText = "";
+
+            try {
+                const res = await fetch('/api/feeding', { method: 'POST' });
+                const data = await res.json();
+
+                const wheel = document.getElementById('roulette-wheel');
+                // 랜덤 회전 + 타겟 각도 (360 * 5바퀴 + 타겟)
+                // target_angle은 12시 기준 시계방향 각도라고 가정
+                // CSS rotate는 시계방향
+                const randomOffset = 360 * 5;
+                const finalRotate = randomOffset + data.target_angle;
+
+                // 실제 회전 (반대 방향으로 돌려야 타겟이 포인터(12시)에 옴? 
+                // 아니면 포인터가 고정이니까 휠이 돔.
+                // 휠이 시계방향으로 돌면, 포인터(12시)에 멈추는 값은 -회전각
+                // 간편하게: 360 - data.target_angle 로 12시에 위치시킴
+                const targetRotation = randomOffset + (360 - data.target_angle);
+
+                wheel.style.transform = `rotate(${targetRotation}deg)`;
+
+                setTimeout(() => {
+                    isSpinning = false;
+                    let msg = `🎉 ${data.prize} 당첨!`;
+                    if (data.reward) {
+                        msg += ` (EXP +${data.reward.exp}, 팝콘 +${data.reward.popcorn})`;
+                    }
+                    document.getElementById('feeding-result').innerText = msg;
+                    alert(data.message);
+                    loadHomeData(); // 팝콘 갱신
+                }, 3000); // 3초 애니메이션
+
+            } catch (e) {
+                console.error(e);
+                isSpinning = false;
+            }
+        }
+
+        // 상점 로직
+        async function loadShopData() {
+            const res = await fetch('/api/shop');
+            const items = await res.json();
+
+            document.getElementById('shop-popcorn').innerText = currentPopcorn;
+
+            const container = document.getElementById('shop-list');
+            container.innerHTML = '';
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+
+                let btnHtml = '';
+                if (item.is_applied) {
+                    btnHtml = `<button class="btn btn-owned" disabled>사용 중</button>`;
+                } else if (item.is_owned) {
+                    btnHtml = `<button class="btn btn-apply" onclick="applyTheme('${item.id}')">적용하기</button>`;
+                } else {
+                    if (currentPopcorn >= item.price) {
+                        btnHtml = `<button class="btn btn-buy" onclick="buyTheme('${item.id}')">구매 (${item.price}🍿)</button>`;
+                    } else {
+                        btnHtml = `<button class="btn btn-disabled" disabled>구매 (${item.price}🍿)</button>`;
+                    }
+                }
+
+                div.innerHTML = `
+                <div>
+                    <div style="font-weight:bold; font-size:1.1em;">${item.name}</div>
+                    <div style="font-size:0.9em; color:#666;">${item.desc}</div>
+                </div>
+                ${btnHtml}
+            `;
+                container.appendChild(div);
+            });
+        }
+
+        async function buyTheme(id) {
+            if (!confirm("구매하시겠습니까?")) return;
+            const res = await fetch('/api/shop/buy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ theme_id: id })
+            });
+            const result = await res.json();
+            if (result.success) {
+                currentPopcorn = result.new_popcorn; // 빠른 UI 갱신용
+                alert(result.message);
+                loadShopData();
+            } else {
+                alert(result.message);
+            }
+        }
+
+        async function applyTheme(id) {
+            const res = await fetch('/api/shop/apply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ theme_id: id })
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert(result.message);
+                loadShopData();
+            } else {
+                alert(result.message);
+            }
+        }
+
+        // 인벤토리 로직
+        async function loadInventoryData() {
+            const res = await fetch('/api/inventory');
+            const data = await res.json();
+
+            // 맛 분포
+            const statsList = document.getElementById('flavor-stats-list');
+            statsList.innerHTML = '';
+            for (const [flavor, count] of Object.entries(data.flavor_stats)) {
+                if (count > 0) {
+                    statsList.innerHTML += `<li>${flavor}: <b>${count}</b>개</li>`;
+                }
+            }
+            if (statsList.innerHTML === '') statsList.innerHTML = '<li>아직 획득한 맛이 없습니다.</li>';
+
+            // 보유 테마
+            document.getElementById('owned-themes-list').innerText = data.owned_themes.join(', ');
+        }
+    </script>
+
+</body>
+
+</html>
