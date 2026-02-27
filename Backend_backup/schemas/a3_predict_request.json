@@ -1,0 +1,77 @@
+{
+  "type": "object",
+  "required": ["user_profile", "movie_profile"],
+  "properties": {
+    "user_profile": {
+      "type": "object",
+      "required": ["emotion_scores", "narrative_traits", "ending_preference"],
+      "properties": {
+        "emotion_scores": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "narrative_traits": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "ending_preference": {
+          "type": "object",
+          "required": ["happy", "open", "bittersweet"],
+          "properties": {
+            "happy": { "type": "number" },
+            "open": { "type": "number" },
+            "bittersweet": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "dislike_tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "boost_tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "movie_profile": {
+      "type": "object",
+      "required": [
+        "emotion_scores",
+        "narrative_traits",
+        "ending_preference"
+      ],
+      "properties": {
+        "emotion_scores": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "narrative_traits": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "ending_preference": {
+          "type": "object",
+          "required": ["happy", "open", "bittersweet"],
+          "properties": {
+            "happy": { "type": "number" },
+            "open": { "type": "number" },
+            "bittersweet": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "dislike_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "boost_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

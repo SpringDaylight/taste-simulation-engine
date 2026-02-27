@@ -1,0 +1,56 @@
+{
+  "type": "object",
+  "required": ["intent", "expanded_query", "hybrid_query"],
+  "properties": {
+    "intent": { "type": "string" },
+    "expanded_query": {
+      "type": "object",
+      "required": ["emotion_scores"],
+      "properties": {
+        "emotion_scores": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "hybrid_query": {
+      "type": "object",
+      "required": ["query", "knn"],
+      "properties": {
+        "query": {
+          "type": "object",
+          "required": ["bool"],
+          "properties": {
+            "bool": {
+              "type": "object",
+              "required": ["must", "filter"],
+              "properties": {
+                "must": { "type": "array", "items": { "type": "object" } },
+                "filter": { "type": "array", "items": { "type": "object" } }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "knn": {
+          "type": "object",
+          "required": ["field", "query_vector", "k", "num_candidates"],
+          "properties": {
+            "field": { "type": "string" },
+            "query_vector": {
+              "type": "array",
+              "items": { "type": "number" }
+            },
+            "k": { "type": "integer" },
+            "num_candidates": { "type": "integer" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

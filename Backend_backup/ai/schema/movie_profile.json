@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "properties": {
+    "emotion_tone": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "narrative_focus": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "pacing": { "type": "string" }
+  },
+  "required": ["emotion_tone", "narrative_focus", "pacing"]
+}

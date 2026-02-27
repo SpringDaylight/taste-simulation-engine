@@ -1,0 +1,410 @@
+[
+    {
+        "id": "q1_genre_like",
+        "category": "genre",
+        "question": "가장 좋아하는 장르를 골라주세요. (최대 5개)",
+        "type": "multi",
+        "max_select": 5,
+        "options": [
+            {
+                "label": "💕 로맨스 / 로코",
+                "tags": [
+                    "Romance",
+                    "Romantic Comedy"
+                ]
+            },
+            {
+                "label": "😂 코미디",
+                "tags": [
+                    "Comedy"
+                ]
+            },
+            {
+                "label": "😢 드라마 / 휴먼",
+                "tags": [
+                    "Drama",
+                    "Human"
+                ]
+            },
+            {
+                "label": "🔪 스릴러 / 미스터리",
+                "tags": [
+                    "Thriller",
+                    "Mystery"
+                ]
+            },
+            {
+                "label": "👻 공포 / 호러",
+                "tags": [
+                    "Horror"
+                ]
+            },
+            {
+                "label": "👊 액션",
+                "tags": [
+                    "Action"
+                ]
+            },
+            {
+                "label": "🚔 범죄 / 느와르",
+                "tags": [
+                    "Crime",
+                    "Noir"
+                ]
+            },
+            {
+                "label": "👽 SF",
+                "tags": [
+                    "Science Fiction"
+                ]
+            },
+            {
+                "label": "🧙 판타지",
+                "tags": [
+                    "Fantasy"
+                ]
+            },
+            {
+                "label": "🧚 애니메이션",
+                "tags": [
+                    "Animation"
+                ]
+            },
+            {
+                "label": "⚔️ 전쟁 / 역사",
+                "tags": [
+                    "War",
+                    "History"
+                ]
+            },
+            {
+                "label": "🎥 다큐멘터리",
+                "tags": [
+                    "Documentary"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "q2_genre_dislike",
+        "category": "genre",
+        "question": "이것만큼은 피하고 싶다! 절대 안 보는 장르는? (선택)",
+        "type": "multi",
+        "options": [
+            {
+                "label": "💕 로맨스 / 로코",
+                "negative_tags": [
+                    "Romance",
+                    "Romantic Comedy"
+                ]
+            },
+            {
+                "label": "😂 코미디",
+                "negative_tags": [
+                    "Comedy"
+                ]
+            },
+            {
+                "label": "😢 드라마 / 휴먼",
+                "negative_tags": [
+                    "Drama",
+                    "Human"
+                ]
+            },
+            {
+                "label": "🔪 스릴러 / 미스터리",
+                "negative_tags": [
+                    "Thriller",
+                    "Mystery"
+                ]
+            },
+            {
+                "label": "👻 공포 / 호러",
+                "negative_tags": [
+                    "Horror"
+                ]
+            },
+            {
+                "label": "👊 액션",
+                "negative_tags": [
+                    "Action"
+                ]
+            },
+            {
+                "label": "🚔 범죄 / 느와르",
+                "negative_tags": [
+                    "Crime",
+                    "Noir"
+                ]
+            },
+            {
+                "label": "👽 SF",
+                "negative_tags": [
+                    "Science Fiction"
+                ]
+            },
+            {
+                "label": "🧙 판타지",
+                "negative_tags": [
+                    "Fantasy"
+                ]
+            },
+            {
+                "label": "🧚 애니메이션",
+                "negative_tags": [
+                    "Animation"
+                ]
+            },
+            {
+                "label": "⚔️ 전쟁 / 역사",
+                "negative_tags": [
+                    "War",
+                    "History"
+                ]
+            },
+            {
+                "label": "🎥 다큐멘터리",
+                "negative_tags": [
+                    "Documentary"
+                ]
+            },
+            {
+                "label": "🆗 없음 (다 잘 봐요!)",
+                "action": "none"
+            }
+        ]
+    },
+    {
+        "id": "q3_context",
+        "category": "context",
+        "question": "보통 영화를 언제, 어떻게 즐기시나요?",
+        "type": "single",
+        "options": [
+            {
+                "label": "🧘 혼자 몰입파",
+                "context": "solo"
+            },
+            {
+                "label": "💑 연인/친구와 함께",
+                "context": "with_friends"
+            },
+            {
+                "label": "👨👩👧👦 가족과 오순도순",
+                "context": "with_family"
+            },
+            {
+                "label": "🌙 자기 전 가볍게",
+                "context": "before_sleep",
+                "preference": {
+                    "runtime_max": 100
+                }
+            },
+            {
+                "label": "🍿 주말에 각 잡고 진득하게",
+                "context": "weekend",
+                "preference": {
+                    "runtime_min": 100
+                }
+            }
+        ]
+    },
+    {
+        "id": "q4_vibe",
+        "category": "basic",
+        "question": "어떤 분위기의 영화가 땡기나요?",
+        "type": "single",
+        "options": [
+            {
+                "label": "🤣 가볍고 유쾌한",
+                "tags": [
+                    "light",
+                    "cheerful",
+                    "funny"
+                ],
+                "weight": {
+                    "emotion": 1.2
+                }
+            },
+            {
+                "label": "😭 감동적이고 여운 남는",
+                "tags": [
+                    "touching",
+                    "sad",
+                    "emotional"
+                ],
+                "weight": {
+                    "emotion": 1.5
+                }
+            },
+            {
+                "label": "🤯 충격적이고 파격적인",
+                "tags": [
+                    "shocking",
+                    "twist",
+                    "provocative"
+                ],
+                "weight": {
+                    "story_flow": 1.2
+                }
+            },
+            {
+                "label": "🌿 잔잔하고 힐링되는",
+                "tags": [
+                    "healing",
+                    "calm",
+                    "slow"
+                ],
+                "weight": {
+                    "emotion": 1.2
+                }
+            },
+            {
+                "label": "🧠 철학적이고 생각하게 만드는",
+                "tags": [
+                    "philosophical",
+                    "deep",
+                    "thought-provoking"
+                ],
+                "weight": {
+                    "story_flow": 1.5
+                }
+            },
+            {
+                "label": "🌃 어둡고 피폐한",
+                "tags": [
+                    "dark",
+                    "gloomy",
+                    "realistic"
+                ],
+                "weight": {
+                    "direction_mood": 1.2
+                }
+            }
+        ]
+    },
+    {
+        "id": "q5_keywords",
+        "category": "keywords",
+        "question": "특별히 꽂히는 소재가 있나요? (중복 선택)",
+        "type": "multi",
+        "options": [
+            {
+                "label": "✨ 성장 / 청춘",
+                "tags": [
+                    "coming of age",
+                    "youth"
+                ]
+            },
+            {
+                "label": "🤝 가족 / 우정",
+                "tags": [
+                    "family",
+                    "friendship",
+                    "buddy"
+                ]
+            },
+            {
+                "label": "💼 전문직 / 직업물",
+                "tags": [
+                    "professional",
+                    "medical",
+                    "legal",
+                    "police"
+                ]
+            },
+            {
+                "label": "📜 실화 기반",
+                "tags": [
+                    "true story",
+                    "based on real events"
+                ]
+            },
+            {
+                "label": "🧟 디스토피아 / 아포칼립스",
+                "tags": [
+                    "dystopia",
+                    "apocalypse",
+                    "disaster"
+                ]
+            },
+            {
+                "label": "🔄 타임루프 / 시간여행",
+                "tags": [
+                    "time loop",
+                    "time travel"
+                ]
+            },
+            {
+                "label": "🎮 게임 / 가상세계",
+                "tags": [
+                    "game",
+                    "virtual reality",
+                    "metaverse"
+                ]
+            },
+            {
+                "label": "🔎 본격 추리",
+                "tags": [
+                    "detective",
+                    "investigation",
+                    "whodunit"
+                ]
+            },
+            {
+                "label": "🎵 음악 / 예술",
+                "tags": [
+                    "music",
+                    "art",
+                    "musical"
+                ]
+            },
+            {
+                "label": "⚽ 스포츠",
+                "tags": [
+                    "sports",
+                    "teamwork"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "q6_origin",
+        "category": "origin",
+        "question": "주로 어떤 영화를 많이 보세요?",
+        "type": "single",
+        "options": [
+            {
+                "label": "🇰🇷 한국 영화",
+                "tags": [
+                    "Korean"
+                ]
+            },
+            {
+                "label": "🇺🇸 미국/할리우드",
+                "tags": [
+                    "USA",
+                    "Hollywood"
+                ]
+            },
+            {
+                "label": "🇯🇵 일본 영화/애니",
+                "tags": [
+                    "Japanese"
+                ]
+            },
+            {
+                "label": "🇪🇺 유럽/기타 해외",
+                "tags": [
+                    "European",
+                    "Foreign"
+                ]
+            },
+            {
+                "label": "🎞️ 고전 명작",
+                "tags": [
+                    "Classic"
+                ]
+            }
+        ]
+    }
+]

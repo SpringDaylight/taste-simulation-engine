@@ -1,0 +1,50 @@
+{
+  "type": "object",
+  "required": [
+    "movie_id",
+    "title",
+    "emotion_scores",
+    "narrative_traits",
+    "direction_mood",
+    "character_relationship",
+    "ending_preference",
+    "embedding_text",
+    "embedding"
+  ],
+  "properties": {
+    "movie_id": { "type": ["string", "number"] },
+    "title": { "type": "string" },
+    "emotion_scores": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "narrative_traits": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "direction_mood": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "character_relationship": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "ending_preference": {
+      "type": "object",
+      "required": ["happy", "open", "bittersweet"],
+      "properties": {
+        "happy": { "type": "number" },
+        "open": { "type": "number" },
+        "bittersweet": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "embedding_text": { "type": "string" },
+    "embedding": {
+      "type": "array",
+      "items": { "type": "number" }
+    }
+  },
+  "additionalProperties": false
+}

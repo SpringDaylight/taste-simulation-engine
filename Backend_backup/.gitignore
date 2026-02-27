@@ -1,0 +1,211 @@
+# 바이트코드 / 최적화 / DLL 파일
+__pycache__/
+*.py[codz]
+*$py.class
+
+# C 확장
+*.so
+
+# 배포 / 패키징
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  보통 이 파일들은 python 스크립트가 템플릿에서 exe를 빌드하기 전에 작성하며,
+#  날짜/기타 정보를 주입하기 위해 사용됩니다.
+*.manifest
+*.spec
+
+# 설치 로그
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 단위 테스트 / 커버리지 리포트
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py.cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# 번역 파일
+*.mo
+*.pot
+
+# Django 관련
+*.log
+local_settings.py
+db.sqlite3
+*.db
+db.sqlite3-journal
+
+# Flask 관련
+instance/
+.webassets-cache
+
+# Scrapy 관련
+.scrapy
+
+# Sphinx 문서
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+#   라이브러리나 패키지라면 여러 환경에서 실행되므로 보통 이 파일을 무시합니다.
+#   그렇지 않다면 체크인해도 됩니다:
+# .python-version
+
+# pipenv
+#   pypa/pipenv#598에 따르면 Pipfile.lock을 버전 관리에 포함하는 것을 권장합니다.
+#   그러나 협업 시 플랫폼 의존성이 있거나 크로스 플랫폼 미지원 의존성이 있으면
+#   pipenv가 필요한 의존성을 설치하지 못할 수 있습니다.
+#Pipfile.lock
+
+# UV
+#   Pipfile.lock과 유사하게, 보통 uv.lock을 버전 관리에 포함하는 것을 권장합니다.
+#   특히 바이너리 패키지의 재현성을 위해 권장되며, 라이브러리는 무시하는 편입니다.
+#uv.lock
+
+# poetry
+#   Pipfile.lock과 유사하게, 보통 poetry.lock을 버전 관리에 포함하는 것을 권장합니다.
+#   특히 바이너리 패키지의 재현성을 위해 권장되며, 라이브러리는 무시하는 편입니다.
+#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
+#poetry.lock
+#poetry.toml
+
+# pdm
+#   Pipfile.lock과 유사하게, 보통 pdm.lock을 버전 관리에 포함하는 것을 권장합니다.
+#   pdm은 pdm.toml에 프로젝트 전역 설정을 두고 .pdm-python은 제외하길 권장합니다.
+#   https://pdm-project.org/en/latest/usage/project/#working-with-version-control
+#pdm.lock
+#pdm.toml
+.pdm-python
+.pdm-build/
+
+# pixi
+#   Pipfile.lock과 유사하게, 보통 pixi.lock을 버전 관리에 포함하는 것을 권장합니다.
+#pixi.lock
+#   Pixi는 venv 모듈처럼 .pixi 디렉터리에 가상환경을 생성합니다.
+#   이 디렉터리는 버전 관리에 포함하지 않는 것이 좋습니다.
+.pixi
+
+# PEP 582; github.com/David-OConnor/pyflow 및 github.com/pdm-project/pdm 등에서 사용
+__pypackages__/
+
+# Celery 관련
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath 파싱 파일
+*.sage.py
+
+# 환경
+.env
+.envrc
+.venv
+env/
+venv/
+venv-wsl/
+venv-win/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder 프로젝트 설정
+.spyderproject
+.spyproject
+
+# Rope 프로젝트 설정
+.ropeproject
+
+# mkdocs 문서
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre 타입 체커
+.pyre/
+
+# pytype 정적 타입 분석기
+.pytype/
+
+# Cython 디버그 심볼
+cython_debug/
+
+# PyCharm
+#  JetBrains 전용 템플릿은 별도의 JetBrains.gitignore에서 관리되며
+#  https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore 에서 확인할 수 있습니다.
+#  전역 gitignore에 추가하거나 이 파일에 병합할 수 있습니다.
+#  전체 .idea 폴더를 무시하려면(비권장) 아래 주석을 해제하세요.
+#.idea/
+
+# Abstra
+#  Abstra는 AI 기반 프로세스 자동화 프레임워크입니다.
+#  사용자 자격증명, 로컬 상태, 설정이 들어있는 디렉터리를 무시합니다.
+#  자세한 내용: https://abstra.io/docs
+.abstra/
+
+# Visual Studio Code
+#  VS Code 전용 템플릿은 별도의 VisualStudioCode.gitignore에서 관리되며
+#  https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore 에서 확인할 수 있습니다.
+#  전역 gitignore에 추가하거나 이 파일에 병합할 수 있습니다.
+#  전체 vscode 폴더를 무시하려면 아래 주석을 해제하세요.
+# .vscode/
+
+# Ruff 관련
+.ruff_cache/
+
+# 캐시 파일
+cache/
+*.pkl
+
+# PyPI 설정 파일
+.pypirc
+
+# Cursor
+#  Cursor는 AI 기반 코드 에디터입니다. `.cursorignore`는 자동완성/분석에서 제외할
+#  파일/디렉터리를 지정합니다. 민감 정보가 있으면 사용을 권장합니다.
+#  자세한 내용: https://docs.cursor.com/context/ignore-files
+.cursorignore
+.cursorindexingignore
+
+# Marimo
+marimo/_static/
+marimo/_lsp/
+__marimo__/

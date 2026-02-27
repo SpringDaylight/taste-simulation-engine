@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "required": ["group_score", "members", "comment"],
+  "properties": {
+    "group_score": { "type": "number" },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["user_id", "probability", "confidence", "level"],
+        "properties": {
+          "user_id": { "type": "string" },
+          "probability": { "type": "number" },
+          "confidence": { "type": "number" },
+          "level": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "comment": { "type": "string" }
+  },
+  "additionalProperties": false
+}

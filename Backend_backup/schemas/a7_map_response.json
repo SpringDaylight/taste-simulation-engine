@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "required": ["clusters", "user_location"],
+  "properties": {
+    "clusters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["cluster_id", "label", "count"],
+        "properties": {
+          "cluster_id": { "type": "integer" },
+          "label": { "type": "string" },
+          "count": { "type": "integer" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "user_location": {
+      "type": "object",
+      "required": ["x", "y", "nearest_cluster", "cluster_label"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "nearest_cluster": { "type": "integer" },
+        "cluster_label": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "required": [
+    "user_text",
+    "emotion_scores",
+    "narrative_traits",
+    "ending_preference",
+    "dislike_tags"
+  ],
+  "properties": {
+    "user_text": { "type": "string" },
+    "emotion_scores": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "narrative_traits": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "ending_preference": {
+      "type": "object",
+      "required": ["happy", "open", "bittersweet"],
+      "properties": {
+        "happy": { "type": "number" },
+        "open": { "type": "number" },
+        "bittersweet": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "dislike_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,141 @@
+{
+    "type": "object",
+    "required": [
+        "user_info",
+        "stats",
+        "recent_reviews",
+        "favorite_movies"
+    ],
+    "properties": {
+        "user_info": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "avatar_text",
+                "created_at"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "avatar_text": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+        "stats": {
+            "type": "object",
+            "required": [
+                "review_count",
+                "average_rating",
+                "total_likes_received"
+            ],
+            "properties": {
+                "review_count": {
+                    "type": "integer"
+                },
+                "average_rating": {
+                    "type": "number"
+                },
+                "total_likes_received": {
+                    "type": "integer"
+                },
+                "top_genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "genre": {
+                                "type": "string"
+                            },
+                            "count": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "top_emotions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "recent_reviews": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "movie_title",
+                    "rating",
+                    "content",
+                    "created_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "movie_id": {
+                        "type": "integer"
+                    },
+                    "movie_title": {
+                        "type": "string"
+                    },
+                    "rating": {
+                        "type": "number"
+                    },
+                    "content": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "likes_count": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "favorite_movies": {
+            "type": "array",
+            "description": "Movies highly rated or explicitly liked by the user",
+            "items": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "title",
+                    "poster_url"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "poster_url": {
+                        "type": "string"
+                    },
+                    "genres": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "additionalProperties": false
+}

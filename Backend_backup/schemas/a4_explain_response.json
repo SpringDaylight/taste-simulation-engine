@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "required": ["movie_title", "match_rate", "explanation", "key_factors", "disclaimer"],
+  "properties": {
+    "movie_title": { "type": "string" },
+    "match_rate": { "type": "number" },
+    "explanation": { "type": "string" },
+    "key_factors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["category", "tag", "score"],
+        "properties": {
+          "category": { "type": "string" },
+          "tag": { "type": "string" },
+          "score": { "type": "number" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "disclaimer": { "type": "string" }
+  },
+  "additionalProperties": false
+}

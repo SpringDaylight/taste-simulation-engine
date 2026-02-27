@@ -1,0 +1,132 @@
+{
+    "type": "object",
+    "required": [
+        "character",
+        "currency",
+        "daily_status",
+        "flavor_distribution"
+    ],
+    "properties": {
+        "character": {
+            "type": "object",
+            "required": [
+                "level",
+                "stage",
+                "exp",
+                "next_level_exp",
+                "flavor",
+                "flavor_name",
+                "image_path"
+            ],
+            "properties": {
+                "level": {
+                    "type": "integer"
+                },
+                "stage": {
+                    "type": "string",
+                    "enum": [
+                        "Egg",
+                        "1차",
+                        "2차",
+                        "3차",
+                        "최종"
+                    ]
+                },
+                "exp": {
+                    "type": "integer"
+                },
+                "next_level_exp": {
+                    "type": "integer"
+                },
+                "flavor": {
+                    "type": "string",
+                    "description": "Dominant flavor (e.g., Sweet)"
+                },
+                "flavor_name": {
+                    "type": "string",
+                    "description": "Korean flavor name (e.g., 달콤)"
+                },
+                "image_path": {
+                    "type": "string"
+                }
+            }
+        },
+        "currency": {
+            "type": "object",
+            "required": [
+                "popcorn"
+            ],
+            "properties": {
+                "popcorn": {
+                    "type": "integer"
+                }
+            }
+        },
+        "daily_status": {
+            "type": "object",
+            "required": [
+                "can_answer_question",
+                "today_question"
+            ],
+            "properties": {
+                "can_answer_question": {
+                    "type": "boolean"
+                },
+                "today_question": {
+                    "type": "string"
+                }
+            }
+        },
+        "flavor_distribution": {
+            "type": "object",
+            "description": "User's flavor stats percentage or raw score",
+            "additionalProperties": {
+                "type": "integer"
+            }
+        },
+        "inventory": {
+            "type": "array",
+            "description": "List of themes owned by the user",
+            "items": {
+                "type": "object",
+                "required": [
+                    "theme_id",
+                    "is_applied",
+                    "acquired_at"
+                ],
+                "properties": {
+                    "theme_id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "is_applied": {
+                        "type": "boolean"
+                    },
+                    "acquired_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            }
+        },
+        "current_theme": {
+            "type": "object",
+            "description": "Currently applied theme",
+            "required": [
+                "theme_id",
+                "name"
+            ],
+            "properties": {
+                "theme_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "additionalProperties": false
+}

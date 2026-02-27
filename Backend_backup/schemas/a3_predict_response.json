@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "required": ["movie_id", "title", "probability", "confidence", "raw_score", "match_rate", "breakdown"],
+  "properties": {
+    "movie_id": { "type": ["string", "number", "null"] },
+    "title": { "type": "string" },
+    "probability": { "type": "number" },
+    "confidence": { "type": "number" },
+    "raw_score": { "type": "number" },
+    "match_rate": { "type": "number" },
+    "breakdown": {
+      "type": "object",
+      "required": [
+        "emotion_similarity",
+        "narrative_similarity",
+        "ending_similarity",
+        "boost_score",
+        "dislike_penalty",
+        "top_factors"
+      ],
+      "properties": {
+        "emotion_similarity": { "type": "number" },
+        "narrative_similarity": { "type": "number" },
+        "ending_similarity": { "type": "number" },
+        "boost_score": { "type": "number" },
+        "dislike_penalty": { "type": "number" },
+        "top_factors": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

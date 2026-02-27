@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "required": ["movie_title", "match_rate", "key_factors"],
+  "properties": {
+    "movie_title": { "type": "string" },
+    "match_rate": { "type": "number" },
+    "key_factors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["category", "tag", "score"],
+        "properties": {
+          "category": { "type": "string" },
+          "tag": { "type": "string" },
+          "score": { "type": "number" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "user_text": { "type": "string" }
+  },
+  "additionalProperties": false
+}

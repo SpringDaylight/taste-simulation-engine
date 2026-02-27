@@ -1,0 +1,94 @@
+{
+    "type": "object",
+    "required": [
+        "user_id",
+        "preference_vector",
+        "persona",
+        "updated_at"
+    ],
+    "properties": {
+        "user_id": {
+            "type": "string"
+        },
+        "updated_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "preference_vector": {
+            "type": "object",
+            "required": [
+                "emotion_scores",
+                "narrative_traits",
+                "ending_preference"
+            ],
+            "properties": {
+                "emotion_scores": {
+                    "type": "object",
+                    "description": "Key-value pairs of emotion tags and their scores (0.0 - 1.0)",
+                    "additionalProperties": {
+                        "type": "number"
+                    }
+                },
+                "narrative_traits": {
+                    "type": "object",
+                    "description": "Key-value pairs of narrative traits and their scores",
+                    "additionalProperties": {
+                        "type": "number"
+                    }
+                },
+                "ending_preference": {
+                    "type": "object",
+                    "required": [
+                        "happy",
+                        "open",
+                        "bittersweet"
+                    ],
+                    "properties": {
+                        "happy": {
+                            "type": "number"
+                        },
+                        "open": {
+                            "type": "number"
+                        },
+                        "bittersweet": {
+                            "type": "number"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        "persona": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "summary_text": {
+                    "type": "string"
+                }
+            }
+        },
+        "tags": {
+            "type": "object",
+            "properties": {
+                "boost": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "penalty": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    },
+    "additionalProperties": false
+}

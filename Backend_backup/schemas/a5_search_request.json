@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "required": ["text"],
+  "properties": {
+    "text": { "type": "string" },
+    "genres": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "year_from": { "type": "integer" },
+    "year_to": { "type": "integer" }
+  },
+  "additionalProperties": false
+}

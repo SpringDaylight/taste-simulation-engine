@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "required": ["text"],
+  "properties": {
+    "text": { "type": "string" },
+    "dislikes": { "type": "string" },
+    "user_id": { "type": "string" },
+    "save_to_db": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}
